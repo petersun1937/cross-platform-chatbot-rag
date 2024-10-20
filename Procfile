@@ -1,1 +1,1 @@
-web: ./myapp
+web: go build -o myapp && ./myapp
