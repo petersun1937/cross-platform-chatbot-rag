@@ -110,7 +110,7 @@ func loadConfig() error {
 	instance = &Config{
 		ServerConfig: ServerConfig{
 			Host:     os.Getenv("SERVER_HOST"),
-			Port:     getEnvInt("APP_PORT", 8080),
+			Port:     getEnvInt("PORT", 8080),
 			Timeout:  getEnvDuration("SERVER_TIMEOUT", 30*time.Second),
 			MaxConn:  getEnvInt("SERVER_MAX_CONN", 100),
 			DBString: os.Getenv("DATABASE_URL"),
