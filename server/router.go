@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	config "crossplatform_chatbot/configs"
@@ -26,7 +25,7 @@ func (app *App) InitRoutes(r *gin.Engine, conf *config.Config, srv *service.Serv
 
 	// Enable CORS
 	app.Router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // Or use "*" to allow all origins
+		AllowOrigins:     []string{"*"}, // Or use "*" to allow all origins
 		AllowMethods:     []string{"POST", "GET", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -75,27 +74,22 @@ func (app *App) InitRoutes(r *gin.Engine, conf *config.Config, srv *service.Serv
 	//r.Run(":8080")
 }
 
-func (app *App) RunRoutes(conf *config.Config, svc *service.Service) {
+func (app *App) RunRoutes(conf *config.Config, svc *service.Service, svr Server) {
 
-	cfg := config.ServerConfig{
-		Host:    os.Getenv("HOST"),
-		Port:    8080, // Default port, can be overridden
-		Timeout: 30 * time.Second,
-		MaxConn: 100,
-	}
+	//conf = GetConfig()
 
 	//if p := os.Getenv("APP_PORT"); p != "" {
-	if p := app.Config.AppPort; p != "" {
+	/*if p := app.Config.AppPort; p != "" {
 		pInt, err := strconv.Atoi(p)
 		if err == nil {
 			cfg.Port = pInt
 		}
-	}
+	}*/
 
 	//db := svc.GetDB() // Get the initialized DB instance
 
 	//fmt.Println("Starting the server on port " + strconv.Itoa(cfg.Port))
-	svr := New(cfg, svc, conf)
+	//svr := New(svrcfg, svc, conf)
 	//svr := New(cfg)
 	if err := svr.Start(app); err != nil {
 		log.Fatal(err)

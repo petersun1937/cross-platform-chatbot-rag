@@ -66,9 +66,9 @@ func (s *Server) Start(app *App) error {
 }
 
 // Gracefully shuts down the HTTP server.
-func Shutdown(ctx context.Context) error {
+func (s *Server) Shutdown(ctx context.Context) error {
 	server := &http.Server{
-		Addr: ":8080", //strconv.Itoa(s.svrcfg.Port),
+		Addr: ":" + strconv.Itoa(s.svrcfg.Port), //strconv.Itoa(s.svrcfg.Port),
 	}
 
 	// Perform any pre-shutdown tasks, like closing database connections, flushing logs, etc.

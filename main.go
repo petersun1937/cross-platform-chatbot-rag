@@ -54,7 +54,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // create context with timeout
 	defer cancel()                                                          // ensure the context is canceled when the function exists
 
-	if err := server.Shutdown(ctx); err != nil { // graceful shutdown
+	if err := app.Server.Shutdown(ctx); err != nil { // graceful shutdown
 		log.Fatal("Server Shutdown: ", err)
 	}
 

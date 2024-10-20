@@ -5,6 +5,8 @@ import (
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/service"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +16,7 @@ type App struct { //TODO: app or GetConfig for config?
 	Service *service.Service // for database operations
 	Router  *gin.Engine
 	Bots    map[string]bot.Bot
+	Server  *Server
 	//LineBot    bot.LineBot
 	//TgBot      bot.TgBot
 	//FbBot      bot.FbBot
@@ -31,18 +34,30 @@ func (a App) Run() error {
 	}
 
 	// initialize http server routes from app struct
-	go a.RunRoutes(a.Config, a.Service)
+	go a.RunRoutes(a.Config, a.Service, *a.Server)
 
 	return nil
 }
 
-func NewApp(conf *config.Config, srv *service.Service, bots map[string]bot.Bot) *App {
+func NewApp(conf *config.Config, svc *service.Service, bots map[string]bot.Bot) *App {
+
+	svrcfg := config.ServerConfig{
+		Host: os.Getenv("HOST"),
+		//Port:    8080, // Default port, can be overridden
+		Port:    conf.Port,
+		Timeout: 30 * time.Second,
+		MaxConn: 100,
+	}
+
+	svr := New(svrcfg, svc, conf)
+	//svr := New(cfg)
 
 	return &App{
 		Config:  conf,
-		Service: srv,
+		Service: svc,
 		Router:  gin.Default(),
 		Bots:    bots,
+		Server:  svr,
 		// LineBot:    lineBot,    // Store the initialized LineBot
 		// TgBot:      tgBot,      // Store the initialized TgBot
 		// FbBot:      fbBot,      // Store the initialized FbBot
