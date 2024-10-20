@@ -1,1 +1,1 @@
-web: go build -o myapp && ./myapp
+web: ./bin/crossplatform_chatbot
