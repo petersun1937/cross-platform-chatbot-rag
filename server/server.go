@@ -56,7 +56,8 @@ func (s *Server) Start(app *App) error {
 	// Run the routes
 	fmt.Println("Starting the server on port", s.svrcfg.Port)
 	err := app.Router.Run("0.0.0.0:" + strconv.Itoa(s.svrcfg.Port)) // Binding to 0.0.0.0
-	//err := router.Run("0.0.0.0:8080") // Binding to 0.0.0.0
+	//err := app.Router.Run("0.0.0.0:" + port) // Binding to 0.0.0.0
+
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
 	}

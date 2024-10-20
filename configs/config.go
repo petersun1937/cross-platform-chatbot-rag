@@ -109,8 +109,9 @@ func loadConfig() error {
 	// Initialize the config struct with environment variables
 	instance = &Config{
 		ServerConfig: ServerConfig{
-			Host:     os.Getenv("SERVER_HOST"),
-			Port:     getEnvInt("APP_PORT", 8080),
+			Host: os.Getenv("SERVER_HOST"),
+			//Port:     getEnvInt("PORT", 8080),
+			Port:     getEnvInt("PORT", -1), // Default to -1 to detect if PORT is missing
 			Timeout:  getEnvDuration("SERVER_TIMEOUT", 30*time.Second),
 			MaxConn:  getEnvInt("SERVER_MAX_CONN", 100),
 			DBString: os.Getenv("DATABASE_URL"),
@@ -181,13 +182,32 @@ func isEnvSet(key string) bool {
 
 // Utility function to get environment variable as an integer
 func getEnvInt(name string, defaultVal int) int {
+	value, exists := os.LookupEnv(name)
+	if !exists {
+		if defaultVal == -1 {
+			fmt.Printf("Environment variable %s is not set and no default value provided. Exiting...\n", name)
+			os.Exit(1) // Exit if a critical environment variable is missing
+		}
+		return defaultVal
+	}
+
+	intValue, err := strconv.Atoi(value)
+	if err != nil {
+		fmt.Printf("Environment variable %s has an invalid value: %s. Expected an integer. Exiting...\n", name, value)
+		os.Exit(1) // Exit if the value is not a valid integer
+	}
+
+	return intValue
+}
+
+/*func getEnvInt(name string, defaultVal int) int {
 	if value, exists := os.LookupEnv(name); exists {
 		if intValue, err := strconv.Atoi(value); err == nil {
 			return intValue
 		}
 	}
 	return defaultVal
-}
+}*/
 
 func getEnvFloat(name string, defaultVal float64) float64 {
 	if value, exists := os.LookupEnv(name); exists {
