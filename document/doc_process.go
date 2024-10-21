@@ -128,7 +128,8 @@ func cleanDocxText(rawText string) string {
 // Extracts text from a PDF file using python script (pdfplumber)
 func extractTextFromPDF(filePath string) (string, error) {
 	// Call the Python script (pdfplumber)
-	cmd := exec.Command("python", "extractPDF.py", filePath)
+	//cmd := exec.Command("python", "./python_scripts/extractPDF.py", filePath)
+	cmd := exec.Command("python3", "./python_scripts/extractPDF.py", filePath)
 
 	// Capture the output of the Python script
 	var out bytes.Buffer
