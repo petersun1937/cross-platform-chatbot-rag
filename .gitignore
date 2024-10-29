@@ -1,0 +1,18 @@
+# Ignore log files
+*.log
+
+# private key
+crossplatform_chatbot.private
+
+# Ignore test documents
+*.pdf
+*.docx
+
+# Ignore bak files
+*.bak
+
+# Ignore env files
+.env
+
+# Ignore pub files (not needed for now)
+*.pub
