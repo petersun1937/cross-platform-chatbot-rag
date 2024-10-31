@@ -48,31 +48,6 @@ func NewLineBot(conf config.BotConfig, database database.Database, dao repositor
 	}, nil
 }
 
-// func NewLineBot(conf *config.Config, service *service.Service) (*lineBot, error) {
-// 	lineClient, err := linebot.New(conf.LineChannelSecret, conf.LineChannelToken)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	baseBot := &BaseBot{
-// 		Platform: LINE,
-// 		Service:  service,
-// 	}
-
-// 	return &lineBot{
-// 		BaseBot: baseBot,
-// 		conf:    conf.BotConfig,
-// 		//secret:     conf.LineChannelSecret,
-// 		//token:      conf.LineChannelToken,
-// 		lineClient: lineClient,
-// 		service:    service,
-// 	}, nil
-// 	/*return &lineBot{
-// 		secret: conf.GetLineSecret(),
-// 		token:  conf.GetLineToken(),
-// 	}*/
-// }
-
 func (b *lineBot) Run() error {
 	// // Initialize Linebot
 	// //lineClient, err := linebot.New(b.secret, b.token)

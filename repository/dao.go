@@ -14,6 +14,7 @@ type DAO interface {
 	GetUser(userIDStr string) (*models.User, error)
 	CreateDocumentEmbedding(filename, docID, docText string, embedding []float64) error
 	FetchEmbeddings() (map[string][]float64, map[string]string, error)
+	GetAllDocuments() ([]models.Document, error)
 }
 
 // dao struct implements the DAO interface.
@@ -66,7 +67,7 @@ func (d *dao) CreateDocumentEmbedding(filename, docID, docText string, embedding
 	docText = utils.SanitizeText(docText)
 	embeddingStr := utils.Float64SliceToPostgresArray(embedding)
 
-	docEmbedding := models.DocumentEmbedding{
+	docEmbedding := models.Document{
 		Filename:  filename,
 		DocID:     docID,
 		DocText:   docText,
@@ -80,7 +81,7 @@ func (d *dao) CreateDocumentEmbedding(filename, docID, docText string, embedding
 
 // FetchEmbeddings retrieves and converts all document embeddings from the database.
 func (d *dao) FetchEmbeddings() (map[string][]float64, map[string]string, error) {
-	var embeddings []models.DocumentEmbedding
+	var embeddings []models.Document
 
 	if err := d.db.GetDB().Find(&embeddings).Error; err != nil {
 		return nil, nil, fmt.Errorf("error retrieving embeddings: %v", err)
@@ -99,6 +100,18 @@ func (d *dao) FetchEmbeddings() (map[string][]float64, map[string]string, error)
 	}
 
 	return documentEmbeddings, docText, nil
+}
+
+// GetAllDocuments retrieves all uploaded documents from the database.
+func (d *dao) GetAllDocuments() ([]models.Document, error) {
+	var documents []models.Document
+
+	// Fetch all documents from the database.
+	if err := d.db.GetDB().Find(&documents).Error; err != nil {
+		return nil, fmt.Errorf("error retrieving documents: %v", err)
+	}
+
+	return documents, nil
 }
 
 /*// database access object
@@ -142,3 +155,25 @@ func (g *GormDB) Find(out interface{}, where ...interface{}) error {
 func (g *GormDB) Updates(values interface{}) error {
 	return g.DB.Updates(values).Error
 }*/
+
+////////
+// func (d *dao) CreateUser() error {
+// 	// save into postgres
+// 	d.database.GetDB().Create(model)
+// 	// d.database.GetPostgresDB().Create(model)
+// }
+
+// func (d *dao) CreatePlayer() error {
+// 	// save into mongodb
+// 	d.database.GetMongoDB().Create(model)
+// }
+
+// func (d *dao) CreateTask() error {
+// 	// save mysql
+// 	d.database.GetMongoMySQLDB().Create(model)
+// }
+
+// func (d *dao) GetTask(id string) Task {
+// 	// remote api server
+// 	d.api.GetTak(id)
+// }

@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type DocumentEmbedding struct {
+type Document struct {
 	ID        uint `gorm:"primarykey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time

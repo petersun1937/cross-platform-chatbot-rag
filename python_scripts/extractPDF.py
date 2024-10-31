@@ -5,6 +5,8 @@ import pytesseract
 import logging
 import sys
 
+sys.stdout.reconfigure(encoding='utf-8')
+
 # Set up logging configuration
 logging.basicConfig(
     filename='pdf_extraction.log',  # Log file name

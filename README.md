@@ -36,7 +36,7 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
 - **Backend**: Go (Gin framework)
 - **Database**: PostgreSQL
 - **APIs**: OpenAI API, Dialogflow, META APIs, Telegram API, LINE API
-<!---  **Cloud**: AWS (for deployment) -->
+- **Cloud**: Heroku (backend deployment), Github Page (frontend deployment)
 
 
 

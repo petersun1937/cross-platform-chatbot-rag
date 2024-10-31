@@ -4,6 +4,7 @@ import (
 	"crossplatform_chatbot/handlers"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -22,10 +23,10 @@ func (s *Server) InitRoutes(handler *handlers.Handler) {
 
 	// Enable CORS
 	s.router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"}, // Use "*" to allow all origins
-		//AllowOrigins:     []string{"http://localhost:3000"}, // localhost needs to be specified directly
-		AllowMethods:     []string{"POST", "GET", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		//AllowOrigins: []string{"*"}, // Use "*" to allow all origins
+		AllowOrigins:     []string{"http://localhost:3000"}, // localhost needs to be specified directly
+		AllowMethods:     []string{"POST", "GET"},           // "OPTIONS"?
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "ngrok-skip-browser-warning"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -43,7 +44,12 @@ func (s *Server) InitRoutes(handler *handlers.Handler) {
 	s.router.GET("/instagram/webhook", handler.VerifyMessengerWebhook) // For webhook verification
 	s.router.POST("/instagram/webhook", handler.HandleMessengerWebhook)
 	s.router.POST("/api/message", handler.HandlerGeneralBot)
+
 	s.router.POST("/api/document/upload", handler.HandlerDocumentUpload)
+	s.router.GET("/api/document/list", handler.HandlerGetDocuments)
+	s.router.OPTIONS("/api/document/list", func(c *gin.Context) {
+		c.Status(http.StatusNoContent)
+	})
 
 	//r.POST("/login", handlers.Login)
 
@@ -59,3 +65,26 @@ func (s *Server) InitRoutes(handler *handlers.Handler) {
 	//fmt.Println("Server started")
 	//r.Run(":8080")
 }
+
+// func (app *App) RunRoutes(conf *config.Config, svc *service.Service, svr Server) {
+
+// 	//conf = GetConfig()
+
+// 	//if p := os.Getenv("APP_PORT"); p != "" {
+// 	/*if p := app.Config.AppPort; p != "" {
+// 		pInt, err := strconv.Atoi(p)
+// 		if err == nil {
+// 			cfg.Port = pInt
+// 		}
+// 	}*/
+
+// 	//db := svc.GetDB() // Get the initialized DB instance
+
+// 	//fmt.Println("Starting the server on port " + strconv.Itoa(cfg.Port))
+// 	//svr := New(svrcfg, svc, conf)
+// 	//svr := New(cfg)
+// 	if err := svr.Start(app); err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// }

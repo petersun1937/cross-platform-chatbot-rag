@@ -234,46 +234,6 @@ func (b *tgBot) validateUser(user *tgbotapi.User, message *tgbotapi.Message) (bo
 	return true, nil // User already exists.
 }
 
-// validateAndGenerateToken checks if the user exists in the database and generates a token if not
-// func (b *tgBot) validateAndGenerateToken(userIDStr string, user *tgbotapi.User) (*string, error) {
-// 	// Check if the user exists in the database
-// 	var dbUser models.User
-// 	err := b.Service.GetDB().Where("user_id = ? AND deleted_at IS NULL", userIDStr).First(&dbUser).Error
-// 	if err != nil {
-// 		// If user does not exist, create a new user
-// 		if errors.Is(err, gorm.ErrRecordNotFound) {
-// 			dbUser = models.User{
-// 				UserID:       userIDStr,
-// 				UserName:     user.UserName,
-// 				FirstName:    user.FirstName,
-// 				LastName:     user.LastName,
-// 				LanguageCode: user.LanguageCode,
-// 			}
-
-// 			// Create the new user record in the database
-// 			if err := b.Service.GetDB().Create(&dbUser).Error; err != nil {
-// 				return nil, fmt.Errorf("error creating user: %w", err)
-// 			}
-
-// 			// Generate a JWT token using the service's ValidateUser method
-// 			token, err := b.Service.ValidateUser(userIDStr, service.ValidateUserReq{
-// 				FirstName:    user.FirstName,
-// 				LastName:     user.LastName,
-// 				UserName:     user.UserName,
-// 				LanguageCode: user.LanguageCode,
-// 			})
-// 			if err != nil {
-// 				return nil, fmt.Errorf("error generating JWT: %w", err)
-// 			}
-
-// 			return token, nil // Return the generated token
-// 		}
-// 		return nil, fmt.Errorf("error retrieving user: %w", err)
-// 	}
-
-// 	return nil, nil // User already exists, no token generation needed
-// }
-
 // Process user messages and respond accordingly
 func (b *tgBot) processUserMessage(message *tgbotapi.Message, firstName, text string) { //chatID int64
 	chatID := message.Chat.ID
