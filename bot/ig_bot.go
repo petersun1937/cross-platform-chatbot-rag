@@ -11,7 +11,8 @@ import (
 
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	"crossplatform_chatbot/document"
+	document "crossplatform_chatbot/document_proc"
+	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 
 	"cloud.google.com/go/dialogflow/apiv2/dialogflowpb"
@@ -21,6 +22,7 @@ type IgBot interface {
 	Run() error
 	//HandleInstagramWebhook(c *gin.Context, igBot IgBot)
 	HandleInstagramMessage(senderID, messageText string)
+	//sendResponse(identifier interface{}, response string) error
 	//setWebhook(webhookURL string) error
 }
 
@@ -33,7 +35,7 @@ type igBot struct {
 }
 
 // creates a new IGBot instance
-func NewIGBot(conf config.BotConfig, database database.Database, dao repository.DAO) (*igBot, error) {
+func NewIGBot(conf config.BotConfig, database database.Database, embconf config.EmbeddingConfig, dao repository.DAO) (*igBot, error) {
 	// Verify that the page access token is available
 	if conf.InstagramPageToken == "" {
 		return nil, errors.New(" Instagram Page Access Token is not provided")
@@ -41,13 +43,38 @@ func NewIGBot(conf config.BotConfig, database database.Database, dao repository.
 
 	return &igBot{
 		BaseBot: BaseBot{
-			Platform: INSTAGRAM,
-			conf:     conf,
-			database: database,
-			dao:      dao,
+			Platform:     INSTAGRAM,
+			conf:         conf,
+			database:     database,
+			dao:          dao,
+			openAIclient: openai.NewClient(),
+			embConfig:    embconf,
 		},
 	}, nil
 }
+
+// // creates a new Instagram bot instance
+// func NewIGBot(conf *config.Config, service *service.Service) (*igBot, error) {
+// 	// Verify that the page access token is available
+// 	if conf.InstagramPageToken == "" {
+// 		return nil, errors.New(" Instagram Page Access Token is not provided")
+// 	}
+
+// 	// Initialize the BaseBot structure
+// 	baseBot := &BaseBot{
+// 		Platform: INSTAGRAM,
+// 		Service:  service,
+// 	}
+
+// 	// Initialize and return the IgBot instance
+// 	return &igBot{
+// 		BaseBot:         baseBot,
+// 		conf:            conf.BotConfig,
+// 		ctx:             context.Background(),
+// 		pageAccessToken: conf.InstagramPageToken,
+// 		//openAIclient    *openai.Client,
+// 	}, nil
+// }
 
 // Run initializes and starts the Instagram bot with webhook
 func (b *igBot) Run() error {
@@ -107,6 +134,82 @@ func (b *igBot) HandleInstagramMessage(senderID, messageText string) {
 	b.processUserMessage(senderID, messageText)
 	//}
 }
+
+// // validateAndGenerateToken checks if the user exists and generates a token if not
+// func (b *igBot) validateAndGenerateToken(userID string) (*string, error) {
+// 	// Retrieve user profile information from Instagram (similar to Facebook logic)
+// 	userProfile, err := b.getUserProfile(userID)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error fetching user profile: %w", err)
+// 	}
+
+// 	// Check if the user exists in the database
+// 	var dbUser models.User
+// 	err = b.Service.GetDB().Where("user_id = ? AND deleted_at IS NULL", userID).First(&dbUser).Error
+// 	if err != nil {
+// 		// If user does not exist, create a new user
+// 		if errors.Is(err, gorm.ErrRecordNotFound) {
+// 			dbUser = models.User{
+// 				UserID:       userID,
+// 				UserName:     userProfile.FirstName + " " + userProfile.LastName, // Combine first and last name
+// 				FirstName:    userProfile.FirstName,
+// 				LastName:     userProfile.LastName,
+// 				LanguageCode: "", // Instagram doesn't provide language directly
+// 			}
+
+// 			// Create the new user record in the database
+// 			if err := b.Service.GetDB().Create(&dbUser).Error; err != nil {
+// 				return nil, fmt.Errorf("error creating user: %w", err)
+// 			}
+
+// 			// Generate a JWT token using the service's ValidateUser method
+// 			token, err := b.Service.ValidateUser(userID, service.ValidateUserReq{
+// 				FirstName:    userProfile.FirstName,
+// 				LastName:     userProfile.LastName,
+// 				UserName:     "", // Instagram doesn’t provide username directly
+// 				LanguageCode: "", // Instagram doesn’t provide language directly
+// 			})
+// 			if err != nil {
+// 				return nil, fmt.Errorf("error generating JWT: %w", err)
+// 			}
+
+// 			return token, nil // Return the generated token
+// 		}
+// 		return nil, fmt.Errorf("error retrieving user: %w", err)
+// 	}
+
+// 	return nil, nil // User already exists, no token generation needed
+// }
+
+// // getUserProfile retrieves the user profile information from Instagram (similar to Facebook)
+// func (b *igBot) getUserProfile(userID string) (*service.UserProfile, error) {
+// 	// Use Instagram API to fetch user profile details
+// 	url := fmt.Sprintf("https://graph.instagram.com/%s?fields=first_name,last_name&access_token=%s", userID, b.pageAccessToken)
+
+// 	resp, err := http.Get(url)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error fetching user profile: %w", err)
+// 	}
+// 	defer resp.Body.Close()
+
+// 	/*if resp.StatusCode != http.StatusOK {
+// 		return nil, fmt.Errorf("invalid response from Instagram, status code: %d", resp.StatusCode)
+// 	}*/
+
+// 	if resp.StatusCode != http.StatusOK {
+// 		// Print the response body for debugging
+// 		bodyBytes, _ := io.ReadAll(resp.Body)
+// 		bodyString := string(bodyBytes)
+// 		return nil, fmt.Errorf("invalid response from Instagram, status code: %d, response: %s", resp.StatusCode, bodyString)
+// 	}
+
+// 	var profile service.UserProfile
+// 	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+// 		return nil, fmt.Errorf("error decoding profile response: %w", err)
+// 	}
+
+// 	return &profile, nil
+// }
 
 // sendResponse sends a message to the specified user on Instagram
 func (b *igBot) sendResponse(senderID interface{}, messageText string) error {
@@ -214,20 +317,20 @@ func (b *igBot) processUserMessage(senderID, text string) {
 				gptPrompt := fmt.Sprintf("Context:\n%s\nUser query: %s", context, text)
 
 				// Call GPT with the context and user query
-				response, err = GetOpenAIResponse(gptPrompt)
+				response, err = b.BaseBot.GetOpenAIResponse(gptPrompt)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				}
 			} else {
 				// If no relevant document found, fallback to OpenAI response
-				response, err = GetOpenAIResponse(text)
+				response, err = b.BaseBot.GetOpenAIResponse(text)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				}
 			}
 		} else {
 			// Use Dialogflow if OpenAI is not enabled
-			handleMessageDialogflow(INSTAGRAM, senderID, text, b)
+			b.BaseBot.handleMessageDialogflow(INSTAGRAM, senderID, text, b)
 			return
 		}
 	}

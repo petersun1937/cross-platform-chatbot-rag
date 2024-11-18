@@ -1,4 +1,4 @@
-package document
+package document_proc
 
 import (
 	"bytes"
@@ -62,6 +62,7 @@ func extractTextFromDocx(filePath string) (string, error) {
 	return cleanContent, nil
 }
 
+// cleanDocxText filters the unnecessary XML tags for cleaner text
 func cleanDocxText(rawText string) string {
 	// Regular expression to match XML tags
 	re := regexp.MustCompile("<[^>]*>")
@@ -74,6 +75,56 @@ func cleanDocxText(rawText string) string {
 
 	return cleanText
 }
+
+// extractTextFromPDF extracts text from a PDF file using pdfcpu (discarded, use python instead)
+/*func extractTextFromPDF(filePath string) (string, error) {
+	// Initialize a new configuration for pdfcpu
+	conf := model.NewDefaultConfiguration()
+
+	// Open the PDF file
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	// Get the current working directory
+	outputDir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("error getting current directory: %v", err)
+	}
+
+	// Generate dynamic file name using timestamp
+	fileName := fmt.Sprintf("extracted_%d", time.Now().Unix())
+
+	// Extract content from the PDF (you can specify page ranges, e.g., "1-3")
+	err = api.ExtractContent(f, outputDir, fileName, nil, conf) // Extract for all pages
+	if err != nil {
+		return "", fmt.Errorf("error extracting content from PDF: %v", err)
+	}
+
+	// Assuming the extracted text is saved as files in the output directory, you can read them here
+	var extractedText string
+
+	// Read the extracted files and concatenate their content
+	for i := 1; ; i++ {
+		pageFile := fmt.Sprintf("%s/%s_page_%d.txt", outputDir, fileName, i)
+		content, err := os.ReadFile(pageFile)
+		if err != nil {
+			// Stop when no more pages are found
+			if os.IsNotExist(err) {
+				break
+			}
+			return "", fmt.Errorf("error reading extracted text file: %v", err)
+		}
+		extractedText += string(content) + "\n"
+	}
+
+	// Post-process the extracted text to filter out unnecessary lines
+	cleanedText := postProcessPDFContent(extractedText)
+
+	return cleanedText, nil
+}*/
 
 // Extracts text from a PDF file using python script (pdfplumber)
 func extractTextFromPDF(filePath string) (string, error) {

@@ -1,4 +1,4 @@
-package document
+package document_proc
 
 import (
 	"crossplatform_chatbot/openai"

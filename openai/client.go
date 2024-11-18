@@ -14,6 +14,7 @@ type Client struct {
 	ApiKey   string
 	MsgModel string
 	EmbModel string
+	TagModel string
 	Client   *resty.Client
 }
 
@@ -26,6 +27,7 @@ func NewClient() *Client {
 		ApiKey:   conf.OpenaiAPIKey,
 		MsgModel: conf.OpenaiMsgModel,
 		EmbModel: conf.OpenaiEmbModel,
+		TagModel: conf.OpenaiTagModel,
 		Client:   client,
 	}
 }
@@ -44,7 +46,7 @@ func (c *Client) GetResponse(prompt string) (string, error) {
 		SetHeader("Authorization", "Bearer "+c.ApiKey).
 		SetHeader("Content-Type", "application/json").
 		SetBody(request).
-		Post("https://api.openai.com/v1/chat/completions")
+		Post("https://api.openai.com/v1/chat/completions") // TODO move to env?
 
 	if err != nil {
 		return "", fmt.Errorf("error sending request to OpenAI: %v", err)

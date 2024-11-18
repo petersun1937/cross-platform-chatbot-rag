@@ -58,26 +58,6 @@ func (s *Server) Start() {
 	}
 }
 
-// func (s *Server) Start(app *App) error {
-
-// 	fmt.Println("Initializing server routes")
-// 	//router := gin.Default()
-
-// 	// Initialize routes
-// 	app.InitRoutes(app.Router, s.conf, s.srv)
-
-// 	// Run the routes
-// 	fmt.Println("Starting the server on port", s.svrcfg.Port)
-// 	err := app.Router.Run("0.0.0.0:" + strconv.Itoa(s.svrcfg.Port)) // Binding to 0.0.0.0
-// 	//err := app.Router.Run("0.0.0.0:" + port) // Binding to 0.0.0.0
-
-// 	if err != nil {
-// 		return fmt.Errorf("failed to start server: %w", err)
-// 	}
-// 	fmt.Println("Server started and running...")
-// 	return nil
-// }
-
 // Gracefully shuts down the HTTP server.
 func (s *Server) Shutdown(ctx context.Context) error {
 	server := &http.Server{

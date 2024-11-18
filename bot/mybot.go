@@ -3,7 +3,7 @@ package bot
 import (
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	"crossplatform_chatbot/document"
+	document "crossplatform_chatbot/document_proc"
 	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 	"fmt"
@@ -17,6 +17,7 @@ import (
 type GeneralBot interface {
 	Run() error
 	HandleGeneralMessage(sessionID, message string)
+	//sendResponse(identifier interface{}, response string) error
 	StoreDocumentChunks(Filename, docID, text string, chunkSize, minchunkSize int) error
 	ProcessDocument(Filename, sessionID, filePath string) error
 	StoreContext(sessionID string, c *gin.Context)
@@ -28,8 +29,8 @@ type generalBot struct {
 	BaseBot
 	//ctx context.Context
 	// conf         config.BotConfig
-	embConfig    config.EmbeddingConfig
-	openAIclient *openai.Client
+	//embConfig    config.EmbeddingConfig
+	//openAIclient *openai.Client
 	//config map[string]string
 }
 
@@ -53,13 +54,13 @@ func NewGeneralBot(botconf config.BotConfig, embconf config.EmbeddingConfig, dat
 
 	return &generalBot{
 		BaseBot: BaseBot{
-			Platform: GENERAL,
-			conf:     botconf,
-			database: database,
-			dao:      dao,
+			Platform:     GENERAL,
+			conf:         botconf,
+			database:     database,
+			dao:          dao,
+			openAIclient: openai.NewClient(),
+			embConfig:    embconf,
 		},
-		embConfig:    embconf,
-		openAIclient: openai.NewClient(),
 	}, nil
 }
 
@@ -126,13 +127,13 @@ func (b *generalBot) ProcessUserMessage(sessionID string, message string) {
 				gptPrompt := fmt.Sprintf("Context:\n%s\nUser query: %s", context, message)
 
 				// Call GPT with the context and user query
-				response, err = GetOpenAIResponse(gptPrompt)
+				response, err = b.BaseBot.GetOpenAIResponse(gptPrompt)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				}
 			} else {
 				// If no relevant document found, fallback to OpenAI response
-				response, err = GetOpenAIResponse(message)
+				response, err = b.BaseBot.GetOpenAIResponse(message)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				}
@@ -140,7 +141,8 @@ func (b *generalBot) ProcessUserMessage(sessionID string, message string) {
 
 		} else {
 			//response = fmt.Sprintf("You said: %s", message)
-			handleMessageDialogflow(GENERAL, sessionID, message, b)
+			//HandleDialogflowIntent(message string) (string, error) {
+			b.BaseBot.handleMessageDialogflow(GENERAL, sessionID, message, b)
 		}
 	}
 
@@ -205,43 +207,7 @@ func (b *generalBot) handleDialogflowResponse(response *dialogflowpb.DetectInten
 	return fmt.Errorf("invalid identifier for frontend or platform")
 }
 
-/*func (b *generalBot) sendMenu(identifier interface{}) error {
-	if sessionID, ok := identifier.(string); ok {
-		// Logic to send menu to the frontend user TODO
-		// For example, return a message to the frontend via the API response
-		fmt.Printf("Sending menu to frontend user with session ID: %s\n", sessionID)
-		return nil
-	}
-	return fmt.Errorf("invalid identifier type for frontend platform")
-}*/
-
-func (b *generalBot) StoreDocumentChunks(Filename, docID, text string, chunkSize, overlap int) error {
-	// Chunk the document with overlap
-	chunks := document.OverlapChunk(text, chunkSize, overlap)
-
-	//client := openai.NewClient()
-
-	for i, chunk := range chunks {
-		// Get the embeddings for each chunk
-		embedding, err := b.openAIclient.EmbedText(chunk)
-		if err != nil {
-			return fmt.Errorf("error embedding chunk %d: %v", i, err)
-		}
-
-		// Create a unique chunk ID for storage in the database
-		chunkID := fmt.Sprintf("%s_chunk_%d_%s", Filename, i, docID)
-		// Store each chunk and its embedding
-		err = b.BaseBot.dao.CreateDocumentEmbedding(Filename, chunkID, chunk, embedding) // Store each chunk with its embedding
-		if err != nil {
-			return fmt.Errorf("error storing chunks: %v", err)
-		}
-		//b.Service.StoreDocumentEmbedding(chunkID, chunk, embedding)
-	}
-	fmt.Println("Document embedding complete.")
-	return nil
-}
-
-func (b *generalBot) ProcessDocument(Filename, sessionID, filePath string) error {
+func (b *generalBot) ProcessDocument(filename, sessionID, filePath string) error {
 	// Extract text from the uploaded file (assuming downloadAndExtractText can handle local files)
 	docText, err := document.DownloadAndExtractText(filePath)
 	if err != nil {
@@ -251,10 +217,70 @@ func (b *generalBot) ProcessDocument(Filename, sessionID, filePath string) error
 	// Store document chunks and their embeddings
 	//chunkSize := 300
 	//minChunkSize := 50
-	err = b.StoreDocumentChunks(Filename, sessionID, docText, b.embConfig.ChunkSize, b.embConfig.MinChunkSize)
+	err = b.StoreDocumentChunks(filename, filename+"_"+sessionID, docText, b.embConfig.ChunkSize, b.embConfig.MinChunkSize)
 	if err != nil {
 		return fmt.Errorf("error storing document chunks: %w", err)
 	}
 
+	// Combine chunk embeddings and auto-tag using embeddings
+	// tags, err := document.AutoTagDocumentEmbeddings(sessionID, b.openAIclient, b.BaseBot.dao, b.embConfig.TagEmbeddings)
+	// if err != nil {
+	// 	return fmt.Errorf("error auto-tagging document: %w", err)
+	// }
+
+	//TODO
+	// Retrieve all chunk embeddings for the document
+	// chunkEmbeddings, err := b.BaseBot.dao.GetChunkEmbeddings(sessionID)
+	// if err != nil {
+	// 	return fmt.Errorf("error retrieving chunk embeddings: %w", err)
+	// }
+
+	// // Combine chunk embeddings into a single document embedding
+	// combinedEmbedding, err := utils.AverageEmbeddings(chunkEmbeddings)
+	// if err != nil {
+	// 	return fmt.Errorf("error combining chunk embeddings: %w", err)
+	// }
+
+	// // Retrieve tags based on similarity between document embedding and tag embeddings
+	// tags := document.GetRelevantTags(combinedEmbedding, b.embConfig.TagEmbeddings, 0.7)
+	// fmt.Println("Auto-tagged with tags:", tags)
+
+	// Auto-tagging using OpenAI
+	tags, err := b.BaseBot.openAIclient.AutoTagWithOpenAI(docText)
+	if err != nil {
+		return fmt.Errorf("error auto-tagging document: %w", err)
+	}
+
+	// Save tags in document metadata
+	if err := b.BaseBot.dao.SaveDocumentMetadata(sessionID, tags); err != nil {
+		return fmt.Errorf("error saving document metadata: %w", err)
+	}
+
+	return nil
+}
+
+func (b *generalBot) StoreDocumentChunks(filename, docID, text string, chunkSize, overlap int) error {
+	// Chunk the document with overlap
+	chunks := document.OverlapChunk(text, chunkSize, overlap)
+
+	//client := openai.NewClient()
+
+	for i, chunk := range chunks {
+		// Get the embeddings for each chunk
+		embedding, err := b.BaseBot.openAIclient.EmbedText(chunk)
+		if err != nil {
+			return fmt.Errorf("error embedding chunk %d: %v", i, err)
+		}
+
+		// Create a unique chunk ID for storage in the database
+		chunkID := fmt.Sprintf("%s_chunk_%d", docID, i)
+		// Store each chunk and its embedding
+		err = b.BaseBot.dao.CreateDocumentEmbedding(filename, docID, chunkID, chunk, embedding) // Store each chunk with its embedding
+		if err != nil {
+			return fmt.Errorf("error storing chunks: %v", err)
+		}
+		//b.Service.StoreDocumentEmbedding(chunkID, chunk, embedding)
+	}
+	fmt.Println("Document embedding complete.")
 	return nil
 }

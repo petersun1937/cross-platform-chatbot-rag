@@ -92,3 +92,42 @@ func PostgresArrayToFloat64Slice(embeddingStr string) ([]float64, error) {
 
 	return floatValues, nil
 }
+
+func ParseEmbeddingString(embeddingStr string) ([]float64, error) {
+	// Remove curly braces and split by commas
+	trimmed := strings.Trim(embeddingStr, "{}")
+	parts := strings.Split(trimmed, ",")
+
+	embedding := make([]float64, len(parts))
+	for i, part := range parts {
+		value, err := strconv.ParseFloat(strings.TrimSpace(part), 64)
+		if err != nil {
+			return nil, err
+		}
+		embedding[i] = value
+	}
+
+	return embedding, nil
+}
+
+func AverageEmbeddings(embeddings [][]float64) ([]float64, error) {
+	if len(embeddings) == 0 {
+		return nil, fmt.Errorf("no embeddings provided")
+	}
+
+	length := len(embeddings[0])
+	combinedEmbedding := make([]float64, length)
+
+	for _, embedding := range embeddings {
+		for i := range embedding {
+			combinedEmbedding[i] += embedding[i]
+		}
+	}
+
+	// Divide each element by the number of embeddings to get the average
+	for i := range combinedEmbedding {
+		combinedEmbedding[i] /= float64(len(embeddings))
+	}
+
+	return combinedEmbedding, nil
+}

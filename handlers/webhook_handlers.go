@@ -28,20 +28,6 @@ func (h *Handler) HandleLineWebhook(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// // HandleTelegramWebhook handles POST requests from Telegram.
-//
-//	func (h *Handler) HandleTelegramWebhook(c *gin.Context) {
-//		var update tgbotapi.Update
-//		if err := c.ShouldBindJSON(&update); err != nil {
-//			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind request"})
-//			return
-//		}
-//		if err := h.Service.HandleTelegram(update); err != nil {
-//			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-//			return
-//		}
-//		c.Status(http.StatusOK)
-//	}
 func (h *Handler) HandleTelegramWebhook(c *gin.Context) {
 	var update tgbotapi.Update
 
@@ -123,3 +109,43 @@ func (h *Handler) VerifyMessengerWebhook(c *gin.Context) {
 		c.String(http.StatusForbidden, "Invalid verification token")
 	}
 }
+
+// Webhook for Dialogflow (discarded, use direct response)
+// func (h *Handler) HandleDialogflowWebhook(c *gin.Context) {
+// 	// Read and unmarshal the request body into a protobuf struct
+// 	var request dialogflowpb.WebhookRequest
+// 	if err := c.BindJSON(&request); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// 		return
+// 	}
+
+// 	// Immediate response to avoid Dialogflow timeouts
+// 	ackResponse := gin.H{
+// 		"fulfillmentText": "Processing your request. Please wait...",
+// 	}
+// 	c.JSON(http.StatusOK, ackResponse)
+
+// 	// Process the intent asynchronously to prevent timeouts
+// 	go func() {
+// 		// Retrieve the session ID from Dialogflow request
+// 		sessionID := request.Session
+// 		platform, identifier, err := parsePlatformAndIdentifier(sessionID)
+// 		if err != nil {
+// 			fmt.Printf("Error parsing platform and identifier: %v\n", err)
+// 			return
+// 		}
+
+// 		// Process the intent with RAG (retrieval-augmented generation)
+// 		response, err := h.Service.ProcessIntentWithRAG(&request)
+// 		if err != nil {
+// 			fmt.Printf("Error processing intent: %v\n", err)
+// 			return
+// 		}
+
+// 		// Send the response to the correct platform using the identifier
+// 		err = h.sendFinalResponseToPlatform(platform, identifier, response.FulfillmentText)
+// 		if err != nil {
+// 			fmt.Printf("Error sending final response to platform: %v\n", err)
+// 		}
+// 	}()
+// }

@@ -2,7 +2,7 @@
 *.log
 
 # private key
-crossplatform_chatbot.private
+*.private
 
 # Ignore test documents
 *.pdf

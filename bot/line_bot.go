@@ -3,8 +3,9 @@ package bot
 import (
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	"crossplatform_chatbot/document"
+	document "crossplatform_chatbot/document_proc"
 	"crossplatform_chatbot/models"
+	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 	"errors"
 	"fmt"
@@ -20,6 +21,7 @@ type LineBot interface {
 	Run() error
 	ParseRequest(req *http.Request) ([]*linebot.Event, error)
 	HandleLineMessage(event *linebot.Event, message *linebot.TextMessage)
+	//sendResponse(identifier interface{}, response string) error
 }
 
 type lineBot struct {
@@ -31,7 +33,7 @@ type lineBot struct {
 	//service    *service.Service
 }
 
-func NewLineBot(conf config.BotConfig, database database.Database, dao repository.DAO) (*lineBot, error) {
+func NewLineBot(conf config.BotConfig, database database.Database, embconf config.EmbeddingConfig, dao repository.DAO) (*lineBot, error) {
 	lineClient, err := linebot.New(conf.LineChannelSecret, conf.LineChannelToken)
 	if err != nil {
 		return nil, err
@@ -39,14 +41,41 @@ func NewLineBot(conf config.BotConfig, database database.Database, dao repositor
 
 	return &lineBot{
 		BaseBot: BaseBot{
-			Platform: LINE,
-			conf:     conf,
-			database: database,
-			dao:      dao,
+			Platform:     LINE,
+			conf:         conf,
+			database:     database,
+			dao:          dao,
+			openAIclient: openai.NewClient(),
+			embConfig:    embconf,
 		},
 		lineClient: lineClient,
 	}, nil
 }
+
+// func NewLineBot(conf *config.Config, service *service.Service) (*lineBot, error) {
+// 	lineClient, err := linebot.New(conf.LineChannelSecret, conf.LineChannelToken)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	baseBot := &BaseBot{
+// 		Platform: LINE,
+// 		Service:  service,
+// 	}
+
+// 	return &lineBot{
+// 		BaseBot: baseBot,
+// 		conf:    conf.BotConfig,
+// 		//secret:     conf.LineChannelSecret,
+// 		//token:      conf.LineChannelToken,
+// 		lineClient: lineClient,
+// 		service:    service,
+// 	}, nil
+// 	/*return &lineBot{
+// 		secret: conf.GetLineSecret(),
+// 		token:  conf.GetLineToken(),
+// 	}*/
+// }
 
 func (b *lineBot) Run() error {
 	// // Initialize Linebot
@@ -232,20 +261,20 @@ func (b *lineBot) processUserMessage(event *linebot.Event, text string) {
 				gptPrompt := fmt.Sprintf("Context:\n%s\nUser query: %s", context, text)
 
 				// Call GPT with the context and user query
-				response, err = GetOpenAIResponse(gptPrompt)
+				response, err = b.BaseBot.GetOpenAIResponse(gptPrompt)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				}
 			} else {
 				// If no relevant document found, fallback to OpenAI response
-				response, err = GetOpenAIResponse(text)
+				response, err = b.BaseBot.GetOpenAIResponse(text)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				}
 			}
 		} else {
 			// Use Dialogflow if OpenAI is not enabled
-			handleMessageDialogflow(LINE, event, text, b)
+			b.BaseBot.handleMessageDialogflow(LINE, event, text, b)
 			return
 		}
 	}

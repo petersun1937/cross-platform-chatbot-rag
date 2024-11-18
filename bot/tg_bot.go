@@ -4,7 +4,7 @@ import (
 	"bytes"
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	"crossplatform_chatbot/document"
+	document "crossplatform_chatbot/document_proc"
 	"crossplatform_chatbot/models"
 	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
@@ -26,16 +26,17 @@ type TgBot interface {
 	setWebhook(webhookURL string) error
 	HandleTelegramUpdate(update tgbotapi.Update)
 	StoreDocumentChunks(filename, docID, text string, chunkSize, minchunkSize int) error
+	//sendResponse(identifier interface{}, response string) error
 }
 
 type tgBot struct {
 	BaseBot
 	// conf         config.BotConfig
-	embConfig config.EmbeddingConfig
+	//embConfig config.EmbeddingConfig
 	// ctx          context.Context
 	// token        string
-	botApi       *tgbotapi.BotAPI
-	openAIclient *openai.Client
+	botApi *tgbotapi.BotAPI
+	//openAIclient *openai.Client
 	//service *service.Service
 }
 
@@ -83,14 +84,15 @@ func NewTGBot(botconf config.BotConfig, embconf config.EmbeddingConfig, database
 
 	return &tgBot{
 		BaseBot: BaseBot{
-			Platform: TELEGRAM,
-			conf:     botconf,
-			database: database,
-			dao:      dao,
+			Platform:     TELEGRAM,
+			conf:         botconf,
+			database:     database,
+			dao:          dao,
+			openAIclient: openai.NewClient(),
+			embConfig:    embconf,
 		},
-		botApi:       botApi,
-		embConfig:    embconf,
-		openAIclient: openai.NewClient(),
+		botApi: botApi,
+		//openAIclient: openai.NewClient(),
 	}, nil
 }
 
@@ -234,6 +236,46 @@ func (b *tgBot) validateUser(user *tgbotapi.User, message *tgbotapi.Message) (bo
 	return true, nil // User already exists.
 }
 
+// validateAndGenerateToken checks if the user exists in the database and generates a token if not
+// func (b *tgBot) validateAndGenerateToken(userIDStr string, user *tgbotapi.User) (*string, error) {
+// 	// Check if the user exists in the database
+// 	var dbUser models.User
+// 	err := b.Service.GetDB().Where("user_id = ? AND deleted_at IS NULL", userIDStr).First(&dbUser).Error
+// 	if err != nil {
+// 		// If user does not exist, create a new user
+// 		if errors.Is(err, gorm.ErrRecordNotFound) {
+// 			dbUser = models.User{
+// 				UserID:       userIDStr,
+// 				UserName:     user.UserName,
+// 				FirstName:    user.FirstName,
+// 				LastName:     user.LastName,
+// 				LanguageCode: user.LanguageCode,
+// 			}
+
+// 			// Create the new user record in the database
+// 			if err := b.Service.GetDB().Create(&dbUser).Error; err != nil {
+// 				return nil, fmt.Errorf("error creating user: %w", err)
+// 			}
+
+// 			// Generate a JWT token using the service's ValidateUser method
+// 			token, err := b.Service.ValidateUser(userIDStr, service.ValidateUserReq{
+// 				FirstName:    user.FirstName,
+// 				LastName:     user.LastName,
+// 				UserName:     user.UserName,
+// 				LanguageCode: user.LanguageCode,
+// 			})
+// 			if err != nil {
+// 				return nil, fmt.Errorf("error generating JWT: %w", err)
+// 			}
+
+// 			return token, nil // Return the generated token
+// 		}
+// 		return nil, fmt.Errorf("error retrieving user: %w", err)
+// 	}
+
+// 	return nil, nil // User already exists, no token generation needed
+// }
+
 // Process user messages and respond accordingly
 func (b *tgBot) processUserMessage(message *tgbotapi.Message, firstName, text string) { //chatID int64
 	chatID := message.Chat.ID
@@ -276,7 +318,7 @@ func (b *tgBot) processUserMessage(message *tgbotapi.Message, firstName, text st
 				gptPrompt := fmt.Sprintf("Context:\n%s\nUser query: %s", context, text)
 
 				// Call GPT with the context and user query
-				response, err = GetOpenAIResponse(gptPrompt)
+				response, err = b.BaseBot.GetOpenAIResponse(gptPrompt)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				} /*else {
@@ -284,7 +326,7 @@ func (b *tgBot) processUserMessage(message *tgbotapi.Message, firstName, text st
 				}*/
 			} else {
 				// If no relevant document found, fallback to OpenAI response
-				response, err = GetOpenAIResponse(text)
+				response, err = b.BaseBot.GetOpenAIResponse(text)
 				//response = fmt.Sprintf("Found related information:\n%s", strings.Join(topChunksText, "\n"))
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
@@ -292,7 +334,7 @@ func (b *tgBot) processUserMessage(message *tgbotapi.Message, firstName, text st
 			}
 		} else {
 			// Fall back to Dialogflow if OpenAI is not enabled
-			handleMessageDialogflow(TELEGRAM, message, text, b)
+			b.BaseBot.handleMessageDialogflow(TELEGRAM, message, text, b)
 			return
 		}
 	}
@@ -403,7 +445,8 @@ func (b *tgBot) HandleDocumentUpload(update tgbotapi.Update) {
 	// Store document chunks and their embeddings
 	chunkSize := 200 // Set chunk size as needed (e.g., 200 words)
 	minchunkSize := 50
-	err = b.StoreDocumentChunks(update.Message.Document.FileName, fileID, docText, chunkSize, minchunkSize)
+	filename := update.Message.Document.FileName
+	err = b.StoreDocumentChunks(filename, filename+"_"+fileID, docText, chunkSize, minchunkSize)
 	if err != nil {
 		b.sendTelegramMessage(update.Message.Chat.ID, "Error storing document chunks: "+err.Error())
 		return
@@ -418,13 +461,13 @@ func (b *tgBot) StoreDocumentChunks(filename, docID, text string, chunkSize, min
 	chunks := document.ChunkSmartly(text, chunkSize, minchunkSize)
 
 	for i, chunk := range chunks {
-		embedding, err := b.openAIclient.EmbedText(chunk)
+		embedding, err := b.BaseBot.openAIclient.EmbedText(chunk)
 		if err != nil {
 			return fmt.Errorf("error embedding chunk %d: %v", i, err)
 		}
 		//chunkID := fmt.Sprintf("%s_chunk_%d", docID, i)
-		chunkID := fmt.Sprintf("%s_chunk_%d_%s", filename, i, docID)
-		err = b.BaseBot.dao.CreateDocumentEmbedding(filename, chunkID, chunk, embedding) // Store each chunk with its embedding
+		chunkID := fmt.Sprintf("%s_chunk_%d", docID, i)
+		err = b.BaseBot.dao.CreateDocumentEmbedding(filename, docID, chunkID, chunk, embedding) // Store each chunk with its embedding
 		if err != nil {
 			return fmt.Errorf("error storing chunks: %v", err)
 		}

@@ -19,7 +19,7 @@ func (c *Client) EmbedText(text string) ([]float64, error) {
 		SetHeader("Authorization", "Bearer "+c.ApiKey).
 		SetHeader("Content-Type", "application/json").
 		SetBody(request).
-		Post("https://api.openai.com/v1/embeddings")
+		Post("https://api.openai.com/v1/embeddings") // move to env?
 
 	if err != nil {
 		return nil, fmt.Errorf("error embedding document: %v", err)
@@ -49,7 +49,7 @@ func (c *Client) EmbedText(text string) ([]float64, error) {
 	return embeddingFloat, nil
 }
 
-// EmbedSentencesBatch sends multiple sentences in a single request and gets embeddings for all of them
+// EmbedSentencesBatch sends multiple sentences in a single request and gets embeddings for all of them (discarded)
 // func EmbedSentencesBatch(sentences []string) ([][]float64, error) {
 // 	client := NewClient()
 // 	request := map[string]interface{}{

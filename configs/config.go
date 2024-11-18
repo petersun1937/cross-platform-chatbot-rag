@@ -15,6 +15,20 @@ type Config struct {
 	BotConfig
 	EmbeddingConfig
 	OpenAIConfig
+	// DBString            string
+	// AppPort             string
+	// TelegramBotToken    string
+	// LineChannelSecret   string
+	// LineChannelToken    string
+	// ServerConfig        ServerConfig
+	// TelegramAPIURL      string
+	// TelegramWebhookURL  string
+	// DialogflowProjectID string
+	// FacebookAPIURL      string
+	// FacebookPageToken   string
+	// FacebookVerifyToken string
+	//DBUser string
+	//DBPwd  string
 }
 
 type ServerConfig struct {
@@ -44,6 +58,7 @@ type OpenAIConfig struct {
 	OpenaiAPIKey   string
 	OpenaiEmbModel string
 	OpenaiMsgModel string
+	OpenaiTagModel string
 	MaxTokens      int
 }
 
@@ -53,6 +68,7 @@ type EmbeddingConfig struct {
 	MinChunkSize   int
 	ScoreThreshold float64
 	NumTopChunks   int
+	TagEmbeddings  map[string][]float64
 }
 
 // Singleton instance of Config
@@ -119,6 +135,7 @@ func loadConfig() error {
 			OpenaiAPIKey:   os.Getenv("OPENAI_API_KEY"),
 			OpenaiEmbModel: os.Getenv("OPENAI_EMBED_MODEL"),
 			OpenaiMsgModel: os.Getenv("OPENAI_MSG_MODEL"),
+			OpenaiTagModel: os.Getenv("OPENAI_TAG_MODEL"),
 			MaxTokens:      getEnvInt("OPENAI_MAX_TOKEN_SIZE", 250),
 		},
 		EmbeddingConfig: EmbeddingConfig{
@@ -127,6 +144,7 @@ func loadConfig() error {
 			MinChunkSize:   getEnvInt("DOC_MIN_CHUNK_SIZE", 50),
 			ScoreThreshold: getEnvFloat("DOC_SCORE_THRESHOLD", 0.65),
 			NumTopChunks:   getEnvInt("DOC_NUM_TOP_CHUNKS", 10),
+			TagEmbeddings:  make(map[string][]float64),
 		},
 	}
 

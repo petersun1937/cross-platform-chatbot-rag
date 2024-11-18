@@ -1,15 +1,8 @@
 package bot
 
 import (
-	config "crossplatform_chatbot/configs"
-	openai "crossplatform_chatbot/openai"
-	"crossplatform_chatbot/utils"
 	"fmt"
-	"strconv"
 	"strings"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/line/line-bot-sdk-go/linebot"
 )
 
 // Defining states
@@ -33,10 +26,10 @@ func handleCommand(command string) string {
 		message = "Scream mode disabled!"
 	case "/openai":
 		useOpenAI = true
-		return "Switched to OpenAI for responses."
+		return "Using OpenAI for responses."
 	case "/dialogflow":
 		useOpenAI = false
-		return "Switched to Dialogflow for responses."
+		return "Using Dialogflow for intent matching."
 	// case "/menu":
 	// 	// Handle menu sending based on platform
 	// 	/*switch platform {
@@ -59,7 +52,7 @@ func handleCommand(command string) string {
 	// 	}
 	// 	return "", nil
 	case "/help":
-		message = "Here are some commands you can use: /start, /help, /scream, /whisper, /menu. You can also type /openai for GPT-based responses, and /dialogflow to switch to rule-based Dialogflow responses!"
+		message = "Here are some commands you can use: /start, /help, /scream, /whisper, /menu. You can also type /openai for basic GPT-based responses with RAG, and /dialogflow to switch to use Dialogflow for intent matching!"
 	case "/custom":
 		message = "This is a custom response!"
 	default:
@@ -69,60 +62,9 @@ func handleCommand(command string) string {
 	return message
 }
 
-// handleMessageDialogflow handles messages from different platforms
-func handleMessageDialogflow(platform Platform, identifier interface{}, text string, bot Bot) {
-	// Determine sessionID based on platform
-	sessionID, err := getSessionID(platform, identifier)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// Send the message to Dialogflow and receive a response
-	conf := config.GetConfig()
-	response, err := utils.DetectIntentText(conf.DialogflowProjectID, sessionID, text, "en")
-	if err != nil {
-		fmt.Printf("Error detecting intent: %v\n", err)
-		return
-	}
-
-	// Process and send the Dialogflow response to the appropriate platform
-	if err := bot.handleDialogflowResponse(response, identifier); err != nil {
-		fmt.Println(err)
-	}
-}
-
-// getSessionID extracts the session ID based on the platform and identifier
-func getSessionID(platform Platform, identifier interface{}) (string, error) {
-	switch platform {
-	case LINE:
-		if event, ok := identifier.(*linebot.Event); ok {
-			return event.Source.UserID, nil
-		}
-		return "", fmt.Errorf("invalid LINE event identifier")
-	case TELEGRAM:
-		if message, ok := identifier.(*tgbotapi.Message); ok {
-			return strconv.FormatInt(message.Chat.ID, 10), nil
-		}
-		return "", fmt.Errorf("invalid Telegram message identifier")
-	case FACEBOOK:
-		if recipientID, ok := identifier.(string); ok {
-			return recipientID, nil
-		}
-		return "", fmt.Errorf("invalid Messenger recipient identifier")
-	case GENERAL:
-		if sessionID, ok := identifier.(string); ok {
-			return sessionID, nil
-		}
-		return "", fmt.Errorf("invalid session identifier")
-	default:
-		return "", fmt.Errorf("unsupported platform")
-	}
-}
-
 // GetOpenAIResponse processes the user message and fetches a response from OpenAI API
-func GetOpenAIResponse(prompt string) (string, error) {
-	client := openai.NewClient()
+func (b *BaseBot) GetOpenAIResponse(prompt string) (string, error) {
+	client := b.openAIclient
 	response, err := client.GetResponse(prompt)
 	if err != nil {
 		return "", fmt.Errorf("error fetching response from OpenAI: %v", err)

@@ -45,6 +45,8 @@ func (s *Server) InitRoutes(handler *handlers.Handler) {
 	s.router.POST("/instagram/webhook", handler.HandleMessengerWebhook)
 	s.router.POST("/api/message", handler.HandlerGeneralBot)
 
+	//s.router.POST("/dialogflow-webhook", handler.HandleDialogflowWebhook)
+
 	s.router.POST("/api/document/upload", handler.HandlerDocumentUpload)
 	s.router.GET("/api/document/list", handler.HandlerGetDocuments)
 	s.router.OPTIONS("/api/document/list", func(c *gin.Context) {

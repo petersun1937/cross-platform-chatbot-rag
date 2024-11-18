@@ -4,7 +4,8 @@ import (
 	"bytes"
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	"crossplatform_chatbot/document"
+	document "crossplatform_chatbot/document_proc"
+	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 	"encoding/json"
 	"errors"
@@ -17,8 +18,9 @@ import (
 )
 
 type FbBot interface {
-	HandleMessengerMessage(senderID, messageText string)
 	Run() error
+	HandleMessengerMessage(senderID, messageText string)
+	SendResponse(identifier interface{}, response string) error
 }
 
 type fbBot struct {
@@ -29,7 +31,7 @@ type fbBot struct {
 }
 
 // creates a new FbBot instance
-func NewFBBot(conf config.BotConfig, database database.Database, dao repository.DAO) (*fbBot, error) {
+func NewFBBot(conf config.BotConfig, database database.Database, embconf config.EmbeddingConfig, dao repository.DAO) (*fbBot, error) {
 	// Verify that the page access token is available
 	if conf.FacebookPageToken == "" {
 		return nil, errors.New("facebook Page Access Token is not provided")
@@ -37,10 +39,12 @@ func NewFBBot(conf config.BotConfig, database database.Database, dao repository.
 
 	return &fbBot{
 		BaseBot: BaseBot{
-			Platform: FACEBOOK,
-			conf:     conf,
-			database: database,
-			dao:      dao,
+			Platform:     FACEBOOK,
+			conf:         conf,
+			database:     database,
+			dao:          dao,
+			openAIclient: openai.NewClient(),
+			embConfig:    embconf,
 		},
 	}, nil
 }
@@ -232,20 +236,20 @@ func (b *fbBot) processUserMessage(senderID, text string) {
 				gptPrompt := fmt.Sprintf("Context:\n%s\nUser query: %s", context, text)
 
 				// Call GPT with the context and user query
-				response, err = GetOpenAIResponse(gptPrompt)
+				response, err = b.BaseBot.GetOpenAIResponse(gptPrompt)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				}
 			} else {
 				// If no relevant document found, fallback to OpenAI response
-				response, err = GetOpenAIResponse(text)
+				response, err = b.BaseBot.GetOpenAIResponse(text)
 				if err != nil {
 					response = fmt.Sprintf("OpenAI Error: %v", err)
 				}
 			}
 		} else {
 			// Use Dialogflow if OpenAI is not enabled
-			handleMessageDialogflow(FACEBOOK, senderID, text, b)
+			b.BaseBot.handleMessageDialogflow(FACEBOOK, senderID, text, b)
 			return
 		}
 	}
