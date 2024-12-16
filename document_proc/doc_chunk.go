@@ -210,64 +210,6 @@ func splitIntoSentences(text string) []string {
 	return sentences
 }
 
-// SemanticChunk performs semantic chunking, embedding sentences and chunking them based on similarity
-// func SemanticChunk(text string, similarityThreshold float64) ([]string, [][]float64, error) {
-// 	// Step 1: Split the document into sentences or smaller units
-// 	sentences := strings.Split(text, ". ")
-
-// 	// Step 2: Embed all sentences in one batch
-// 	embeddings, err := openai.EmbedSentencesBatch(sentences)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("error embedding sentences: %v", err)
-// 	}
-
-// 	// Step 3: Initialize variables for chunking
-// 	var chunks []string
-// 	var chunkEmbeddings [][]float64 // To store the embeddings for each chunk
-// 	var currentChunk []string
-// 	var currentEmbedding []float64
-// 	prevEmbedding := embeddings[0]
-
-// 	// Add the first sentence to the current chunk
-// 	currentChunk = append(currentChunk, sentences[0])
-// 	currentEmbedding = append(currentEmbedding, embeddings[0]...)
-
-// 	// Step 4: Loop through the remaining sentences
-// 	for i := 1; i < len(sentences); i++ {
-// 		currEmbedding := embeddings[i]
-
-// 		// Calculate similarity between consecutive sentence embeddings
-// 		similarity := cosineSimilarity(prevEmbedding, currEmbedding)
-
-// 		// If the similarity drops below the threshold, create a new chunk
-// 		if similarity < similarityThreshold {
-// 			// Add the current chunk to the list
-// 			chunks = append(chunks, strings.Join(currentChunk, ". "))
-// 			chunkEmbeddings = append(chunkEmbeddings, currentEmbedding)
-
-// 			// Start a new chunk
-// 			currentChunk = []string{sentences[i]}
-// 			currentEmbedding = embeddings[i]
-// 		} else {
-// 			// Continue adding to the current chunk
-// 			currentChunk = append(currentChunk, sentences[i])
-// 			currentEmbedding = append(currentEmbedding, embeddings[i]...)
-// 		}
-
-// 		// Update previous embedding for the next comparison
-// 		prevEmbedding = currEmbedding
-// 	}
-
-// 	// Step 5: Add the last chunk
-// 	if len(currentChunk) > 0 {
-// 		chunks = append(chunks, strings.Join(currentChunk, ". "))
-// 		chunkEmbeddings = append(chunkEmbeddings, currentEmbedding)
-// 	}
-
-// 	// Return the chunks and their corresponding embeddings
-// 	return chunks, chunkEmbeddings, nil
-// }
-
 // Overlap chunking to preserve context across chunks
 func OverlapChunk(text string, chunkSize int, overlap int) []string {
 	words := strings.Fields(text) // Split text into words

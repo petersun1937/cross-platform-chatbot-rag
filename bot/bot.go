@@ -5,27 +5,32 @@ import (
 	"crossplatform_chatbot/database"
 	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
-
-	"cloud.google.com/go/dialogflow/apiv2/dialogflowpb"
 )
 
 // action, public function
 type Bot interface {
 	Run() error
-
-	//sendMenu(identifier interface{}) error
-	sendResponse(identifier interface{}, message string) error
-	handleDialogflowResponse(response *dialogflowpb.DetectIntentResponse, identifier interface{}) error
+	SendReply(identifier interface{}, message string) error
+	Base() *BaseBot // Make BaseBot accessible
+	Platform() Platform
 }
 
 type BaseBot struct {
-	Platform Platform
+	platform Platform
 	// Service  *service.Service
-	conf         config.BotConfig
+	conf         *config.BotConfig
 	database     database.Database
 	dao          repository.DAO
 	openAIclient *openai.Client
 	embConfig    config.EmbeddingConfig
+}
+
+func (b *BaseBot) Base() *BaseBot {
+	return b
+}
+
+func (b *BaseBot) Platform() Platform {
+	return b.platform
 }
 
 // define platforms

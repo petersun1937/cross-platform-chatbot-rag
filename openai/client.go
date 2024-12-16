@@ -11,11 +11,13 @@ import (
 
 // Struct to hold OpenAI API client configuration
 type Client struct {
-	ApiKey   string
-	MsgModel string
-	EmbModel string
-	TagModel string
-	Client   *resty.Client
+	ApiKey       string
+	MsgModel     string
+	EmbModel     string
+	TagModel     string
+	MsgTokenSize int
+	TagTokenSize int
+	Client       *resty.Client
 }
 
 // Function to create a new OpenAI client
@@ -24,11 +26,13 @@ func NewClient() *Client {
 
 	client := resty.New()
 	return &Client{
-		ApiKey:   conf.OpenaiAPIKey,
-		MsgModel: conf.OpenaiMsgModel,
-		EmbModel: conf.OpenaiEmbModel,
-		TagModel: conf.OpenaiTagModel,
-		Client:   client,
+		ApiKey:       conf.OpenaiAPIKey,
+		MsgModel:     conf.OpenaiMsgModel,
+		EmbModel:     conf.OpenaiEmbModel,
+		TagModel:     conf.OpenaiTagModel,
+		MsgTokenSize: conf.MaxTokens,
+		TagTokenSize: conf.MaxTagTokens,
+		Client:       client,
 	}
 }
 
@@ -37,7 +41,7 @@ func (c *Client) GetResponse(prompt string) (string, error) {
 	request := map[string]interface{}{
 		"model":       c.MsgModel,                                               // Specify model type (gpt-3.5-turbo, gpt-4o-mini, chatgpt-4o, gpt-4)
 		"messages":    []map[string]string{{"role": "user", "content": prompt}}, // Adjusted for chat models
-		"max_tokens":  250,
+		"max_tokens":  c.MsgTokenSize,
 		"temperature": 0.7,
 	}
 
@@ -46,7 +50,7 @@ func (c *Client) GetResponse(prompt string) (string, error) {
 		SetHeader("Authorization", "Bearer "+c.ApiKey).
 		SetHeader("Content-Type", "application/json").
 		SetBody(request).
-		Post("https://api.openai.com/v1/chat/completions") // TODO move to env?
+		Post("https://api.openai.com/v1/chat/completions")
 
 	if err != nil {
 		return "", fmt.Errorf("error sending request to OpenAI: %v", err)

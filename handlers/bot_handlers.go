@@ -3,6 +3,7 @@ package handlers
 import (
 	"crossplatform_chatbot/bot"
 	config "crossplatform_chatbot/configs"
+	"crossplatform_chatbot/models"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -110,42 +111,41 @@ func (h *Handler) VerifyMessengerWebhook(c *gin.Context) {
 	}
 }
 
-// Webhook for Dialogflow (discarded, use direct response)
-// func (h *Handler) HandleDialogflowWebhook(c *gin.Context) {
-// 	// Read and unmarshal the request body into a protobuf struct
-// 	var request dialogflowpb.WebhookRequest
-// 	if err := c.BindJSON(&request); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-// 		return
-// 	}
+// HandlerGeneralBot handles incoming POST requests from the frontend
+func (h *Handler) HandlerGeneralBot(c *gin.Context) {
+	var req models.GeneralRequest
 
-// 	// Immediate response to avoid Dialogflow timeouts
-// 	ackResponse := gin.H{
-// 		"fulfillmentText": "Processing your request. Please wait...",
-// 	}
-// 	c.JSON(http.StatusOK, ackResponse)
+	// Parse the incoming request from the frontend and bind to the req struct
+	if err := c.ShouldBindJSON(&req); err != nil {
+		fmt.Printf("failed to bind request: %s\n", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
 
-// 	// Process the intent asynchronously to prevent timeouts
-// 	go func() {
-// 		// Retrieve the session ID from Dialogflow request
-// 		sessionID := request.Session
-// 		platform, identifier, err := parsePlatformAndIdentifier(sessionID)
-// 		if err != nil {
-// 			fmt.Printf("Error parsing platform and identifier: %v\n", err)
-// 			return
-// 		}
+	// Store the context (to use later for sending the response)
+	b := h.Service.GetBot("general")
+	genBot := b.(bot.GeneralBot)
 
-// 		// Process the intent with RAG (retrieval-augmented generation)
-// 		response, err := h.Service.ProcessIntentWithRAG(&request)
-// 		if err != nil {
-// 			fmt.Printf("Error processing intent: %v\n", err)
-// 			return
-// 		}
+	// Store the context using the sessionID
+	genBot.StoreContext(req.SessionID, c)
 
-// 		// Send the response to the correct platform using the identifier
-// 		err = h.sendFinalResponseToPlatform(platform, identifier, response.FulfillmentText)
-// 		if err != nil {
-// 			fmt.Printf("Error sending final response to platform: %v\n", err)
-// 		}
-// 	}()
-// }
+	// Delegate the request to the service layer.
+	response, err := h.Service.HandleGeneral(req)
+	if err != nil {
+		fmt.Printf("Error handling general request: %s\n", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to handle request"})
+		return
+	}
+
+	// TODO: store context?
+	// Send reply to the frontend along with status code
+	fmt.Printf("Sent message %s \n", response)
+	err = b.SendReply(req.SessionID, response)
+	if err != nil {
+		//c.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while sending the response"})
+		fmt.Printf("An error occurred while sending the response: %s\n", err.Error())
+	}
+
+	// Return an OK status after successfully processing the message
+	//c.Status(http.StatusOK)
+}

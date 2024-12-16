@@ -6,12 +6,12 @@ import (
 )
 
 // Defining states
-var screaming bool
-var useOpenAI bool = true // Default to using Dialogflow
+//var screaming bool
+//var useOpenAI bool = true // Default to using Dialogflow
 
 // Process the commands sent by users and returns the message as a string
 // func handleCommand(identifier interface{}, command string, bot Bot) (string, error) {
-func handleCommand(command string) string {
+func (b *BaseBot) HandleCommand(command string) string {
 	var message string
 	//var err error
 
@@ -19,16 +19,16 @@ func handleCommand(command string) string {
 	case "/start":
 		message = "Welcome to the bot!"
 	case "/scream":
-		screaming = true // Enable screaming mode
+		b.conf.Screaming = true // Enable screaming mode
 		message = "Scream mode enabled!"
 	case "/whisper":
-		screaming = false // Disable screaming mode
+		b.conf.Screaming = false // Disable screaming mode
 		message = "Scream mode disabled!"
 	case "/openai":
-		useOpenAI = true
+		b.conf.UseOpenAI = true
 		return "Using OpenAI for responses."
 	case "/dialogflow":
-		useOpenAI = false
+		b.conf.UseOpenAI = false
 		return "Using Dialogflow for intent matching."
 	// case "/menu":
 	// 	// Handle menu sending based on platform
