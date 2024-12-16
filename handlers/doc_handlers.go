@@ -13,9 +13,9 @@ func (h *Handler) HandlerGetDocuments(c *gin.Context) {
 	//fmt.Println("GET request received at /api/document/list")
 
 	// Set CORS headers explicitly for the GET request
-	/*c.Header("Access-Control-Allow-Origin", "*") // Allow all origins
+	c.Header("Access-Control-Allow-Origin", "*") // Allow all origins
 	c.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")*/
+	c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
 
 	filenames, err := h.Service.GetUploadedDocuments()
 	if err != nil {

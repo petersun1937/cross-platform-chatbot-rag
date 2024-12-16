@@ -23,8 +23,8 @@ func (s *Server) InitRoutes(handler *handlers.Handler) {
 
 	// Enable CORS
 	s.router.Use(cors.New(cors.Config{
-		//AllowOrigins: []string{"*"}, // Use "*" to allow all origins
-		AllowOrigins: []string{"https://petersun1937.github.io/Custom_Frontend_Chatbot"},
+		AllowOrigins: []string{"*"}, // Use "*" to allow all origins
+		//AllowOrigins: []string{"https://petersun1937.github.io/Custom_Frontend_Chatbot"},
 		//AllowOrigins:     []string{"http://localhost:3000"}, // localhost needs to be specified directly
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "ngrok-skip-browser-warning"},
