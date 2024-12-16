@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Initialize service
-	svc := service.NewService(conf.BotConfig, &conf.EmbeddingConfig, db)
+	svc := service.NewService(&conf.BotConfig, &conf.EmbeddingConfig, db)
 	if err := svc.RunBots(); err != nil {
 		log.Fatal("Failed to run the Bot services:", err)
 	}

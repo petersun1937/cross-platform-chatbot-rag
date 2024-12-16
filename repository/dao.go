@@ -17,7 +17,7 @@ type DAO interface {
 	CreateDocumentEmbedding(filename, docID, chunkID, docText string, embedding []float64) error
 	FetchEmbeddings() (map[string][]float64, map[string]string, error)
 	GetAllDocuments() ([]models.Document, error)
-	SaveDocumentMetadata(docID string, tags []string) error
+	//SaveDocumentMetadata(docID string, tags []string) error
 	GetChunkEmbeddings(docID string) ([][]float64, error)
 	RetrieveTagEmbeddings() (map[string][]float64, error)
 	StoreTagEmbeddings(tagDescriptions map[string]string, embedFunc func(string) ([]float64, error)) error
@@ -140,16 +140,6 @@ func (d *dao) GetChunkEmbeddings(docID string) ([][]float64, error) {
 	return embeddings, nil
 }
 
-// Saves the metadata for the documents to database.
-func (d *dao) SaveDocumentMetadata(docID string, tags []string) error {
-	metadata := models.DocumentMetadata{
-		DocID:     docID,
-		Tags:      tags,
-		CreatedAt: time.Now(),
-	}
-	return d.db.GetDB().Create(&metadata).Error
-}
-
 // RetrieveTagEmbeddings gets embeddings for tags and stores from the database
 func (d *dao) RetrieveTagEmbeddings() (map[string][]float64, error) {
 	var tagEmbeddings []models.TagEmbedding
@@ -220,93 +210,3 @@ func (d *dao) GetDocumentChunksByTags(tags []string) ([]models.Document, error) 
 
 	return documents, nil
 }
-
-// // GetDocumentChunksByTags retrieves document chunks based on tags.
-// func (d *dao) GetDocumentChunksByTags(tags []string) ([]models.Document, error) {
-// 	var docIDs []string
-
-// 	// Query the document_metadata table to get doc_ids where any of the tags match
-// 	err := d.db.GetDB().Table("document_metadata").
-// 		Where("tags && ?::text[]", pq.Array(tags)). // Use pq.Array and cast to text[]
-// 		Pluck("doc_id", &docIDs).Error
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error retrieving doc_ids by tags: %w", err)
-// 	}
-
-// 	if len(docIDs) == 0 {
-// 		return nil, nil // No matching documents found for the tags
-// 	}
-
-// 	// Query the documents table to get the document chunks for the retrieved doc_ids
-// 	var documents []models.Document
-// 	err = d.db.GetDB().Where("doc_id IN ?", docIDs).Find(&documents).Error
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error retrieving document chunks: %w", err)
-// 	}
-
-// 	return documents, nil
-// }
-
-/*// database access object
-type GormDB struct {
-	DB *gorm.DB
-}
-
-func (g *GormDB) Create(value interface{}) error {
-	return g.DB.Create(value).Error
-}
-
-func (g *GormDB) Where(query interface{}, args ...interface{}) Database {
-	return &GormDB{DB: g.DB.Where(query, args...)}
-}
-
-func (g *GormDB) First(out interface{}, where ...interface{}) error {
-	return g.DB.First(out, where...).Error
-}
-
-func (g *GormDB) Save(value interface{}) error {
-	return g.DB.Save(value).Error
-}
-
-func (g *GormDB) Model(value interface{}) Database {
-	g.DB = g.DB.Model(value)
-	return g
-}
-
-func (g *GormDB) Take(out interface{}, where ...interface{}) error {
-	return g.DB.Take(out, where...).Error
-}
-
-func (g *GormDB) Delete(value interface{}, where ...interface{}) error {
-	return g.DB.Delete(value, where...).Error
-}
-
-func (g *GormDB) Find(out interface{}, where ...interface{}) error {
-	return g.DB.Find(out, where...).Error
-}
-
-func (g *GormDB) Updates(values interface{}) error {
-	return g.DB.Updates(values).Error
-}*/
-
-////////
-// func (d *dao) CreateUser() error {
-// 	// save into postgres
-// 	d.database.GetDB().Create(model)
-// 	// d.database.GetPostgresDB().Create(model)
-// }
-
-// func (d *dao) CreatePlayer() error {
-// 	// save into mongodb
-// 	d.database.GetMongoDB().Create(model)
-// }
-
-// func (d *dao) CreateTask() error {
-// 	// save mysql
-// 	d.database.GetMongoMySQLDB().Create(model)
-// }
-
-// func (d *dao) GetTask(id string) Task {
-// 	// remote api server
-// 	d.api.GetTak(id)
-// }

@@ -53,40 +53,7 @@ func (s *Server) InitRoutes(handler *handlers.Handler) {
 		c.Status(http.StatusNoContent)
 	})
 
-	//r.POST("/login", handlers.Login)
-
-	// Protected routes
-	/*authorized := r.Group("/api")
-	authorized.Use(middleware.JWTMiddleware())
-	{
-		authorized.POST("/message", handlers.HandleCustomMessage)
-		// Add other protected routes here
-	}*/
-
 	fmt.Println("Server routes initialized")
 	//fmt.Println("Server started")
 	//r.Run(":8080")
 }
-
-// func (app *App) RunRoutes(conf *config.Config, svc *service.Service, svr Server) {
-
-// 	//conf = GetConfig()
-
-// 	//if p := os.Getenv("APP_PORT"); p != "" {
-// 	/*if p := app.Config.AppPort; p != "" {
-// 		pInt, err := strconv.Atoi(p)
-// 		if err == nil {
-// 			cfg.Port = pInt
-// 		}
-// 	}*/
-
-// 	//db := svc.GetDB() // Get the initialized DB instance
-
-// 	//fmt.Println("Starting the server on port " + strconv.Itoa(cfg.Port))
-// 	//svr := New(svrcfg, svc, conf)
-// 	//svr := New(cfg)
-// 	if err := svr.Start(app); err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// }
