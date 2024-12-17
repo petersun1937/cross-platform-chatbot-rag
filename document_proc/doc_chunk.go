@@ -10,7 +10,12 @@ import (
 )
 
 // Compute similarity score and retrieve  the top N chunks from database.
-func RetrieveTopNChunks(query string, documentEmbeddings map[string][]float64, topN int, docIDToText map[string]string, threshold float64) ([]string, error) {
+func RetrieveTopNChunks(query string, documentEmbeddings map[string][]float64, topN int, docIDToText map[string]string, threshold float64) ([]struct {
+	ChunkID string
+	Text    string
+	Score   float64
+}, error) {
+
 	fmt.Println("Embedding query for similarity search...")
 	client := openai.NewClient()
 	queryEmbedding, err := client.EmbedText(query)
@@ -50,19 +55,34 @@ func RetrieveTopNChunks(query string, documentEmbeddings map[string][]float64, t
 	})
 
 	// Collect the top N chunks' actual text using docIDToText
-	var topChunksText []string
+	var topChunks []struct {
+		ChunkID string
+		Text    string
+		Score   float64
+	}
 	for i := 0; i < topN && i < len(scores); i++ {
 		chunkID := scores[i].chunkID
 		if text, exists := docIDToText[chunkID]; exists {
-			topChunksText = append(topChunksText, text)
+			//topChunksText = append(topChunksText, text)
+			topChunks = append(topChunks, struct {
+				ChunkID string
+				Text    string
+				Score   float64
+			}{
+				ChunkID: chunkID,
+				Text:    text,
+				Score:   scores[i].score,
+			})
 			fmt.Printf("Top relevant chunk selected. %s: %f\n", chunkID, scores[i].score)
 		} else {
-			topChunksText = append(topChunksText, fmt.Sprintf("Text not found for chunk: %s", chunkID))
+			fmt.Printf("Warning: Text not found for chunkID: %s\n", chunkID)
+			continue // Skip this chunk and proceed with the next one
+			//topChunksText = append(topChunksText, fmt.Sprintf("Text not found for chunk: %s", chunkID))
 		}
 	}
 
 	//fmt.Println("Top relevant chunks selected. %s: %f\n", chunkID, combinedScore)
-	return topChunksText, nil
+	return topChunks, nil
 }
 
 // Chunks the text by full sentences, keeping each chunk under a certain word limit

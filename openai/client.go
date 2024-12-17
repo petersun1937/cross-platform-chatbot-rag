@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -75,5 +76,25 @@ func (c *Client) GetResponse(prompt string) (string, error) {
 		return "", errors.New("invalid response format from OpenAI")
 	}
 
-	return text, nil
+	// Clean up the response to trim prefixes like "Assistant:" or "assistant:"
+	cleanedText := cleanResponseText(text)
+
+	return cleanedText, nil
+}
+
+// cleanResponseText trims unwanted prefixes like "Assistant:" or "assistant:" from the text
+func cleanResponseText(text string) string {
+	// Normalize the text to lowercase for comparison
+	lowerText := strings.ToLower(text)
+
+	// Trim "response:" prefix
+	if strings.HasPrefix(lowerText, "response:") {
+		text = strings.TrimSpace(text[len("response:"):])
+	}
+
+	// Trim "assistant:" prefix
+	if strings.HasPrefix(lowerText, "assistant:") {
+		text = strings.TrimSpace(text[len("assistant:"):])
+	}
+	return text
 }

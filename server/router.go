@@ -23,8 +23,8 @@ func (s *Server) InitRoutes(handler *handlers.Handler) {
 
 	// Enable CORS
 	s.router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"}, // Use "*" to allow all origins
-		//AllowOrigins: []string{"https://petersun1937.github.io/Custom_Frontend_Chatbot"},
+		AllowOrigins: []string{"*"}, // For testing, use "*" to allow all origins
+		//AllowOrigins: []string{"https://petersun1937.github.io/Custom_Frontend_Chatbot"}, // for deployment
 		//AllowOrigins:     []string{"http://localhost:3000"}, // localhost needs to be specified directly
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "ngrok-skip-browser-warning"},
@@ -53,6 +53,16 @@ func (s *Server) InitRoutes(handler *handlers.Handler) {
 	s.router.OPTIONS("/api/document/list", func(c *gin.Context) {
 		c.Status(http.StatusNoContent)
 	})
+
+	//r.POST("/login", handlers.Login)
+
+	// Protected routes
+	/*authorized := r.Group("/api")
+	authorized.Use(middleware.JWTMiddleware())
+	{
+		authorized.POST("/message", handlers.HandleCustomMessage)
+		// Add other protected routes here
+	}*/
 
 	fmt.Println("Server routes initialized")
 	//fmt.Println("Server started")

@@ -18,6 +18,7 @@ func (h *Handler) HandleLineWebhook(c *gin.Context) {
 		// If the request has an invalid signature, return a 400 Bad Request error
 		if err == linebot.ErrInvalidSignature {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid signature"})
+
 			return
 		}
 		// If there is any other error during parsing, return a 500 Internal Server Error
@@ -130,22 +131,32 @@ func (h *Handler) HandlerGeneralBot(c *gin.Context) {
 	genBot.StoreContext(req.SessionID, c)
 
 	// Delegate the request to the service layer.
-	response, err := h.Service.HandleGeneral(req)
+	response, intent, topChunkIDs, topChunkScores, err := h.Service.HandleGeneral(req)
+
 	if err != nil {
 		fmt.Printf("Error handling general request: %s\n", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to handle request"})
 		return
 	}
 
-	// TODO: store context?
-	// Send reply to the frontend along with status code
-	fmt.Printf("Sent message %s \n", response)
-	err = b.SendReply(req.SessionID, response)
-	if err != nil {
-		//c.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while sending the response"})
-		fmt.Printf("An error occurred while sending the response: %s\n", err.Error())
+	// Combine chunk IDs and scores into a single list of objects
+	var combinedChunks []map[string]interface{}
+	for i := range topChunkIDs {
+		combinedChunks = append(combinedChunks, map[string]interface{}{
+			"id":    topChunkIDs[i],
+			"score": topChunkScores[i],
+		})
 	}
 
-	// Return an OK status after successfully processing the message
-	//c.Status(http.StatusOK)
+	// Prepare the combined response
+	responseData := gin.H{
+		"response": response,
+		"intent":   intent,
+		"chunks":   combinedChunks,
+	}
+
+	// Send the combined response
+	c.JSON(http.StatusOK, responseData)
+	fmt.Printf("Sent message: %s\n", response)
+
 }

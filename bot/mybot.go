@@ -14,6 +14,7 @@ import (
 type GeneralBot interface {
 	Run() error
 	StoreContext(sessionID string, c *gin.Context)
+	//SetWebhook(webhookURL string) error
 }
 
 type generalBot struct {
@@ -59,9 +60,19 @@ func (b *generalBot) sendFrontendMessage(c *gin.Context, message string) error {
 	if c == nil {
 		return fmt.Errorf("gin context is nil")
 	}
-	c.JSON(http.StatusOK, gin.H{
+
+	// Merge the response message into extraData
+	responseData := gin.H{
 		"response": message,
-	})
+	}
+
+	// Merge extraData into responseData
+	/*for key, value := range extraData {
+		responseData[key] = value
+	}*/
+
+	// Send the combined response
+	c.JSON(http.StatusOK, responseData)
 	return nil
 }
 

@@ -15,6 +15,20 @@ type Config struct {
 	BotConfig
 	EmbeddingConfig
 	OpenAIConfig
+	// DBString            string
+	// AppPort             string
+	// TelegramBotToken    string
+	// LineChannelSecret   string
+	// LineChannelToken    string
+	// ServerConfig        ServerConfig
+	// TelegramAPIURL      string
+	// TelegramWebhookURL  string
+	// DialogflowProjectID string
+	// FacebookAPIURL      string
+	// FacebookPageToken   string
+	// FacebookVerifyToken string
+	//DBUser string
+	//DBPwd  string
 }
 
 type ServerConfig struct {
@@ -121,7 +135,7 @@ func loadConfig() error {
 			InstagramVerifyToken: os.Getenv("IG_VERIFY_TOKEN"),
 			InstagramPageToken:   os.Getenv("IG_PAGE_TOKEN"),
 			Screaming:            false,
-			UseOpenAI:            true,
+			UseOpenAI:            false,
 		},
 		OpenAIConfig: OpenAIConfig{
 			OpenaiAPIKey:   os.Getenv("OPENAI_API_KEY"),

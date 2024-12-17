@@ -35,7 +35,7 @@ func (s *Service) GetUploadedDocuments() ([]string, error) {
 }
 
 func (s *Service) HandleDocumentUpload(filename, fileID, filePath string) error {
-	// step 1: call bot to process documents
+	// call bot to process documents
 	//b := s.GetBot("general").(bot.GeneralBot)
 
 	//documents, tags, err := b.ProcessDocument(filename, fileID, filePath)
@@ -48,7 +48,7 @@ func (s *Service) HandleDocumentUpload(filename, fileID, filePath string) error 
 	// return s.repository.CreateDocumentsAndMeta(fileID, documents, tags)
 
 	// service version
-	// step 2: make db data
+	// make db data
 	documentModels := make([]*models.Document, 0)
 	documentID := ""
 	for _, doc := range documents {
@@ -67,7 +67,7 @@ func (s *Service) HandleDocumentUpload(filename, fileID, filePath string) error 
 		Tags:  tags,
 	}
 
-	// step 3: do transaction
+	// do transaction
 	return s.database.GetDB().Transaction(func(tx *gorm.DB) error {
 		// batch insert Documents
 		if err := tx.Create(documentModels).Error; err != nil {
