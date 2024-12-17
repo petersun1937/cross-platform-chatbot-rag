@@ -10,21 +10,12 @@ import (
 
 	dialogflow "cloud.google.com/go/dialogflow/apiv2"
 	"cloud.google.com/go/dialogflow/apiv2/dialogflowpb"
+	"google.golang.org/api/option"
 )
 
 // handleMessageDialogflow handles a message from the platform, sends it to Dialogflow for intent detection,
 // retrieves the corresponding context using RAG, generates a response with OpenAI, and sends it back to the user.
 func (s *Service) handleMessageDialogflow(chatID, message string) (string, string, []string, []float64, error) {
-	//func (s *Service) HandleMessageDialogflow(platform bot.Platform, identifier interface{}, message string) (string, error) {
-	//b := s.GetBot(botTag)
-	//baseBot := b.Base()
-
-	// Determine chat ID
-	/*chatID, err := s.getSessionID(platform, identifier)
-	if err != nil {
-		fmt.Printf("Error getting session ID: %v\n", err)
-		return "", fmt.Errorf("error getting session ID: %v", err)
-	}*/
 
 	// Detect intent using Dialogflow
 	response, err := s.fetchDialogflowResponse(chatID, message)
@@ -64,7 +55,8 @@ func (s *Service) fetchDialogflowResponse(sessionID, text string) (*dialogflowpb
 // Send a text query to Dialogflow and returns the response
 func (s *Service) detectIntentText(projectID, sessionID, text, languageCode string) (*dialogflowpb.DetectIntentResponse, error) {
 	ctx := context.Background()
-	client, err := dialogflow.NewSessionsClient(ctx)
+	//client, err := dialogflow.NewSessionsClient(ctx)
+	client, err := dialogflow.NewSessionsClient(ctx, option.WithCredentialsFile(s.botConfig.GoogleCredentialsFilePath))
 	if err != nil {
 		return nil, fmt.Errorf("error creating Dialogflow client: %v", err)
 	}

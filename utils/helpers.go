@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"encoding/base64"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -109,4 +111,32 @@ func AverageEmbeddings(embeddings [][]float64) ([]float64, error) {
 	}
 
 	return combinedEmbedding, nil
+}
+
+// Helper function to decode GOOGLE_APPLICATION_CREDENTIALS_JSON and create a temp file
+func DecodeGoogleCredentials(encodedCreds string) (string, error) {
+
+	if encodedCreds == "" {
+		return "", fmt.Errorf("environment variable GOOGLE_APPLICATION_CREDENTIALS_JSON is not set")
+	}
+
+	// Decode the base64 string
+	credsBytes, err := base64.StdEncoding.DecodeString(encodedCreds)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode GOOGLE_APPLICATION_CREDENTIALS_JSON: %v", err)
+	}
+
+	// Write to a temporary file using os.CreateTemp
+	tmpFile, err := os.CreateTemp("", "google-creds-*.json")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file for Google credentials: %v", err)
+	}
+	defer tmpFile.Close()
+
+	// Write the decoded credentials to the temporary file
+	if _, err := tmpFile.Write(credsBytes); err != nil {
+		return "", fmt.Errorf("failed to write credentials to temp file: %v", err)
+	}
+
+	return tmpFile.Name(), nil
 }
