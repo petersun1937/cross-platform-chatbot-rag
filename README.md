@@ -9,34 +9,43 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
 - [Installation](#installation)
 - [Tech Stack](#tech-stack)
 - [License](#license)
+- [Contact](#contact)
 
 ## Features
-- Multi-platform support (Messenger, Telegram, LINE, or custom web page)
-- Document storing and chunking
-- OpenAI integration for conversational AI and text embedding/semantic search
-- Retrieval-Augmented Generation (RAG) for document-based responses
-- Context-aware responses and smart routing
+- **Multi-platform Support**: Messenger, Telegram, LINE, Instagram, or custom web page.
+- **Retrieval-Augmented Generation (RAG)**: Intelligent, document-based responses using semantic search.
+- **Dynamic Intent Handling**: Dialogflow for intent matching and tagging documents for improved efficiency.
+- **Context-aware Responses**: Combines RAG and OpenAI models for enhanced conversational AI.
+- **Document Processing**: Upload, chunk, and store documents with embeddings for semantic search.
 
 <!---   Handles FAQs, troubleshooting, and customer inquiries -->
 
 ## Demo
 <!---   - **Video Demo**: [Coming Soon] -->
-- **Live Demo**: https://petersun1937.github.io/Custom_Frontend_Chatbot
+- **Presentation slides**: [Support chatbot with RAG](https://docs.google.com/presentation/d/10M90QfSjpdLvMHcqu3oT6lyrRwAfknDK/view)
+- **Live Demo**: [Chatbot demo with custom frontend](https://petersun1937.github.io/Custom_Frontend_Chatbot)
 
 ## How It Works
-- Users interact with the chatbot through various platforms (support FB Messenger, Telegram, LINE, or custom platform).
-- Dialogflow detects intents for common questions and support requests.
-- OpenAI generates conversational responses for unrecognized inputs.
-- Document upload, which is then chunked and stored in the database along with text embeddings.
-- The Retrieval-Augmented Generation (RAG) system fetches relevant documents for FAQs and troubleshooting.
+1. **Intent Handling**:
+   - Dialogflow matches user inputs with known intents and tags uploaded documents.
+   - Only documents matching specific tags are searched to improve efficiency.
+2. **RAG Process**:
+   - Uploaded documents are chunked with overlapping sections.
+   - Embeddings are generated and stored for semantic search.
+   - Relevant chunks are retrieved using a weighted combination of cosine similarity and fuzzy matching scores.
+   - Retrieved context is added to prompts for response generation using GPT models.
+3. **Cross-platform Integration**:
+   - APIs for Messenger, LINE, Telegram, and Instagram.
+   - Custom web frontend built with React.
 
 
 ## Tech Stack
-- **Frontend**: React (web interaction)
+- **Frontend**: React
 - **Backend**: Go (Gin framework)
 - **Database**: PostgreSQL
-- **APIs**: OpenAI API, Dialogflow, META APIs, Telegram API, LINE API
-- **Cloud**: Heroku (backend deployment), Github Page (frontend deployment)
+- **APIs**: OpenAI, Dialogflow, Telegram, LINE, META
+- **Cloud Deployment**: Heroku (backend), GitHub Pages (frontend)
+- **Tools**: PDF processing libraries for text extraction
 
 
 
@@ -44,25 +53,36 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
 
 - **Clone the Repository**:
    ```bash
-   git clone https://github.com/petersun1937/CrossPlatform-TechSupport-Chatbot.git
-   cd CrossPlatform-TechSupport-Chatbot
+   git clone https://github.com/petersun1937/cross-platform-chatbot-rag.git
+   cd cross-platform-chatbot-rag
    ```
 
 - **Backend Setup**:
-   - **Ensure Go and Python are installed**:
-      - Make sure that Go (version 1.16 or higher) and Python (version 3.6 or higher) are installed on your system.
-      - You can verify the installation by running the following commands:
-        ```bash
-        go version
-        python --version
-        ```
+1. **Prerequisites**:
+   - Install Go (v1.16 or higher) and Python (v3.6 or higher).
+   - Verify installation:
+     ```bash
+     go version
+     python --version
+     ```
+2. **Install Python Packages**:
+   - The backend requires several Python packages for processing PDFs. To install them, run:
+   ```bash
+   pip install pdfplumber pytesseract pdf2image PyPDF2
+   ```
+   - These packages handle PDF text extraction and Optical Character Recognition (OCR) for images within PDFs.
 
-  - **Install Python packages**:
-      - The backend requires several Python packages for processing PDFs. To install them, run:
-        ```bash
-        pip install pdfplumber pytesseract pdf2image PyPDF2
-        ```
-      - These packages handle PDF text extraction and Optical Character Recognition (OCR) for images within PDFs.
+3. **Set Up Environment Variables**:
+   - Create a `.env` file in the `configs/` directory to store variables such as API keys and database configurations (refer to `sample.env`).
+
+4. **Run the Backend Server**:
+   - Navigate to the project directory and start the server:
+     ```bash
+     go run main.go
+     ```
+      
+### Frontend Setup (Optional)
+   - Refer to [my custom frontend repo](https://github.com/petersun1937/Custom_Frontend_Chatbot)
 <!--- 
    - **Tesseract OCR Installation** (Optional for OCR capabilities):
       - **Linux**: Install Tesseract via the package manager:
@@ -72,8 +92,7 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
       - **Windows**: Download and install [Tesseract](https://github.com/tesseract-ocr/tesseract/wiki).
       - Ensure Tesseract is accessible through your system's PATH.
 -->
-   - **Set up environment variables**:
-      - Create a `.env` file in the `configs/` directory to store environment variables such as API keys and database configurations (refer to `sample.env`).
+
 <!---        
 - Example `.env` file structure:
         ```bash
@@ -100,8 +119,16 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
    - The frontend will run at [http://localhost:3000](http://localhost:3000).
    -->
 
-
+## Potential Use Cases
+- Streamlining FAQs and troubleshooting for customer support.
+- Automating knowledge retrieval for internal teams.
+- Enhancing collaborative workflows with intelligent document processing.
+- Acting as a meeting assistant for document organization and context provision.
+- Extending to incorporate custom-trained language models.
 
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+If you have any questions or suggestions, feel free to reach out to cxs1937@psu.edu.
