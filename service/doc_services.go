@@ -35,7 +35,7 @@ func (s *Service) GetUploadedDocuments() ([]string, error) {
 }
 
 func (s *Service) HandleDocumentUpload(filename, fileID, filePath string) error {
-	// call bot to process documents
+	// step 1: call bot to process documents
 	//b := s.GetBot("general").(bot.GeneralBot)
 
 	//documents, tags, err := b.ProcessDocument(filename, fileID, filePath)
@@ -48,7 +48,7 @@ func (s *Service) HandleDocumentUpload(filename, fileID, filePath string) error 
 	// return s.repository.CreateDocumentsAndMeta(fileID, documents, tags)
 
 	// service version
-	// make db data
+	// step 2: make db data
 	documentModels := make([]*models.Document, 0)
 	documentID := ""
 	for _, doc := range documents {
@@ -67,7 +67,7 @@ func (s *Service) HandleDocumentUpload(filename, fileID, filePath string) error 
 		Tags:  tags,
 	}
 
-	// do transaction
+	// step 3: do transaction
 	return s.database.GetDB().Transaction(func(tx *gorm.DB) error {
 		// batch insert Documents
 		if err := tx.Create(documentModels).Error; err != nil {
@@ -101,7 +101,7 @@ func (s *Service) ProcessDocument(filename, sessionID, filePath string) ([]model
 		}
 		documents = append(documents, document)
 		// Auto-tagging using OpenAI
-		tags, err := s.client.AutoTagWithOpenAI(chunk)
+		tags, err := s.openaiClient.AutoTagWithOpenAI(chunk)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error auto-tagging document: %w", err)
 		}
@@ -113,7 +113,7 @@ func (s *Service) ProcessDocument(filename, sessionID, filePath string) ([]model
 }
 
 func (s *Service) StoreDocumentChunks(filename, docID, chunkText string, chunkID int) (models.Document, error) {
-	embedding, err := s.client.EmbedText(chunkText)
+	embedding, err := s.openaiClient.EmbedText(chunkText)
 	if err != nil {
 		return models.Document{}, fmt.Errorf("error embedding chunk: %v", err)
 	}

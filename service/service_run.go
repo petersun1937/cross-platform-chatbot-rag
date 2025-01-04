@@ -8,30 +8,35 @@ import (
 	"crossplatform_chatbot/repository"
 	"fmt"
 	"log"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
-	bots       map[string]bot.Bot
-	database   database.Database // TODO
-	repository repository.DAO
-	client     *openai.Client
-	botConfig  *config.BotConfig
-	embConfig  config.EmbeddingConfig
+	bots         map[string]bot.Bot
+	database     database.Database // TODO
+	repository   repository.DAO
+	openaiClient *openai.Client
+	redisClient  *redis.Client
+	botConfig    *config.BotConfig
+	embConfig    config.EmbeddingConfig
 	//TagEmbeddings map[string][]float64
 }
 
-func NewService(botConfig *config.BotConfig, embConfig *config.EmbeddingConfig, db database.Database) *Service {
-	// Initialize the DAO and OpenAI client
+func NewService(botConfig *config.BotConfig, embConfig *config.EmbeddingConfig, redisConfig config.RedisConfig, db database.Database) *Service {
+	// Initialize the DAO, OpenAI and Redis clients
 	dao := repository.NewDAO(db)
 	openaiClient := openai.NewClient()
+	redisClient := initRedis(redisConfig)
 
 	// Create a temporary Service instance to access methods like getOrInitializeTagEmbeddings
 	svc := &Service{
-		database:   db,
-		repository: dao,
-		client:     openaiClient,
-		botConfig:  botConfig,
-		embConfig:  *embConfig, // pointer no pointer?
+		database:     db,
+		repository:   dao,
+		openaiClient: openaiClient,
+		redisClient:  redisClient,
+		botConfig:    botConfig,
+		embConfig:    *embConfig, // pointer no pointer?
 	}
 
 	// Now create bots (with the updated embConfig if using emb based tagging)

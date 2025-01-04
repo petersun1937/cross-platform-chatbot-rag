@@ -16,6 +16,7 @@ type Config struct {
 	BotConfig
 	EmbeddingConfig
 	OpenAIConfig
+	RedisConfig
 }
 
 type ServerConfig struct {
@@ -51,6 +52,11 @@ type OpenAIConfig struct {
 	OpenaiTagModel string
 	MaxTokens      int
 	MaxTagTokens   int
+}
+
+type RedisConfig struct {
+	RedisEndpoint string
+	RedisPassword string
 }
 
 type EmbeddingConfig struct {
@@ -149,6 +155,10 @@ func loadConfig() error {
 			ScoreThreshold: getEnvFloat("DOC_SCORE_THRESHOLD", 0.65),
 			NumTopChunks:   getEnvInt("DOC_NUM_TOP_CHUNKS", 10),
 			TagEmbeddings:  make(map[string][]float64),
+		},
+		RedisConfig: RedisConfig{
+			RedisEndpoint: os.Getenv("REDIS_ENDPOINT"),
+			RedisPassword: os.Getenv("REDIS_PASSWORD"),
 		},
 	}
 

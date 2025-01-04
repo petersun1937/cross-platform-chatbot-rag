@@ -6,7 +6,7 @@ import (
 )
 
 type App struct { //TODO: app or GetConfig for config?
-	Config config.Config // *
+	//Config config.Config // *
 	Server *Server
 	// Service *service.Service // for database operations
 	// Router  *gin.Engine
@@ -50,7 +50,7 @@ func NewApp(conf config.Config, handler *handlers.Handler) *App {
 	// //svr := New(cfg)
 
 	return &App{
-		Config: conf,
+		//Config: conf,
 		Server: New(conf.ServerConfig, handler),
 		// Config:  conf,
 		// Service: svc,

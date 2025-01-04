@@ -10,14 +10,14 @@ import (
 )
 
 // Compute similarity score and retrieve  the top N chunks from database.
-func RetrieveTopNChunks(query string, documentEmbeddings map[string][]float64, topN int, docIDToText map[string]string, threshold float64) ([]struct {
+func RetrieveTopNChunks(query string, documentEmbeddings map[string][]float64, client *openai.Client, topN int, docIDToText map[string]string, threshold float64) ([]struct {
 	ChunkID string
 	Text    string
 	Score   float64
 }, error) {
 
 	fmt.Println("Embedding query for similarity search...")
-	client := openai.NewClient()
+	//client := openai.NewClient()
 	queryEmbedding, err := client.EmbedText(query)
 	if err != nil {
 		return nil, fmt.Errorf("error embedding query: %v", err)

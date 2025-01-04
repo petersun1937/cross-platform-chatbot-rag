@@ -34,7 +34,11 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
    - Embeddings are generated and stored for semantic search.
    - Relevant chunks are retrieved using a weighted combination of cosine similarity and fuzzy matching scores.
    - Retrieved context is added to prompts for response generation using GPT models.
-3. **Cross-platform Integration**:
+   Persistent Conversation Context:
+3. **Persistent Conversation Context**:
+   - Redis stores user conversation history in key-value pairs, allowing personalized, context-aware responses.
+   - History is fetched and included in prompts for OpenAI and Dialogflow, ensuring continuity across interactions.
+4. **Cross-platform Integration**:
    - APIs for Messenger, LINE, Telegram, and Instagram.
    - Custom web frontend built with React.
 
@@ -43,8 +47,9 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
 - **Frontend**: React
 - **Backend**: Go (Gin framework)
 - **Database**: PostgreSQL
+- **In-memory Store**: Redis (for conversation history and context storage)
 - **APIs**: OpenAI, Dialogflow, Telegram, LINE, META
-- **Cloud Deployment**: Heroku (backend), GitHub Pages (frontend)
+- **Cloud Deployment**: Google Cloud (backend), GitHub Pages (frontend)
 - **Tools**: PDF processing libraries for text extraction
 
 

@@ -87,14 +87,16 @@ func cleanResponseText(text string) string {
 	// Normalize the text to lowercase for comparison
 	lowerText := strings.ToLower(text)
 
-	// Trim "response:" prefix
 	if strings.HasPrefix(lowerText, "response:") {
 		text = strings.TrimSpace(text[len("response:"):])
 	}
 
-	// Trim "assistant:" prefix
 	if strings.HasPrefix(lowerText, "assistant:") {
 		text = strings.TrimSpace(text[len("assistant:"):])
+	}
+
+	if strings.HasPrefix(lowerText, "bot:") {
+		text = strings.TrimSpace(text[len("bot:"):])
 	}
 	return text
 }
