@@ -1,7 +1,7 @@
 package document_proc
 
 import (
-	"crossplatform_chatbot/openai"
+	"crossplatform_chatbot/ai_clients/openai"
 	"fmt"
 	"regexp"
 	"sort"

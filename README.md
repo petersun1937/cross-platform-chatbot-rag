@@ -17,6 +17,7 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
 - **Dynamic Intent Handling**: Dialogflow for intent matching and tagging documents for improved efficiency.
 - **Context-aware Responses**: Combines RAG and OpenAI models for enhanced conversational AI.
 - **Document Processing**: Upload, chunk, and store documents with embeddings for semantic search.
+- **Multiple AI Model Support**: OpenAI, Mistral, META (Llama), Together AI, with configurable AI Provider Switching.
 
 <!---   Handles FAQs, troubleshooting, and customer inquiries -->
 
@@ -41,17 +42,20 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
 4. **Cross-platform Integration**:
    - APIs for Messenger, LINE, Telegram, and Instagram.
    - Custom web frontend built with React.
-
+5. **Language Model Selection & Switching**:
+   - The chatbot supports multiple Language Models (OpenAI GPT-4, Mistral-large, META Llama-3, Together AI).
+   - Only one model is active at a time, while Dialogflow can be enabled/disabled independently for intent matching.
+   - Users can switch between models using commands (e.g., `/openai`, `/mistral`, `/meta`).
+   
 
 ## Tech Stack
 - **Frontend**: React
 - **Backend**: Go (Gin framework)
 - **Database**: PostgreSQL
 - **In-memory Store**: Redis (for conversation history and context storage)
-- **APIs**: OpenAI, Dialogflow, Telegram, LINE, META
+- **APIs**: OpenAI, Dialogflow, Telegram, LINE, META, Together AI, Hugging Face
 - **Cloud Deployment**: Google Cloud (backend), GitHub Pages (frontend)
 - **Tools**: PDF processing libraries for text extraction
-
 
 
 ## Installation
@@ -129,7 +133,7 @@ A multi-platform chatbot that provides intelligent customer and tech support usi
 - Automating knowledge retrieval for internal teams.
 - Enhancing collaborative workflows with intelligent document processing.
 - Acting as a meeting assistant for document organization and context provision.
-- Extending to incorporate custom-trained language models.
+- Extending to incorporate custom-trained or pretrained language models.
 
 
 ## License

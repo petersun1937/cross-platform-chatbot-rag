@@ -2,10 +2,10 @@ package bot
 
 import (
 	"bytes"
+	"crossplatform_chatbot/ai_clients"
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
 	"crossplatform_chatbot/models"
-	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 	"encoding/json"
 	"errors"
@@ -30,7 +30,7 @@ type tgBot struct {
 }
 
 // creates a new TGBot instance
-func NewTGBot(botconf *config.BotConfig, embconf config.EmbeddingConfig, database database.Database, dao repository.DAO) (*tgBot, error) {
+func NewTGBot(botconf *config.BotConfig, embconf config.EmbeddingConfig, aiClients ai_clients.AIClients, database database.Database, dao repository.DAO) (*tgBot, error) {
 	// Attempt to create a new Telegram bot using the provided token
 	botApi, err := tgbotapi.NewBotAPI(botconf.TelegramBotToken)
 	if err != nil {
@@ -43,12 +43,14 @@ func NewTGBot(botconf *config.BotConfig, embconf config.EmbeddingConfig, databas
 
 	return &tgBot{
 		BaseBot: BaseBot{
-			platform:     TELEGRAM,
-			conf:         botconf,
-			database:     database,
-			dao:          dao,
-			openAIclient: openai.NewClient(),
-			embConfig:    embconf,
+			platform:  TELEGRAM,
+			conf:      botconf,
+			database:  database,
+			dao:       dao,
+			aiClients: aiClients,
+			//openAIclient:  openaiClient,
+			//mistralClient: mistralClient,
+			embConfig: embconf,
 		},
 		botApi: botApi,
 		//openAIclient: openai.NewClient(),

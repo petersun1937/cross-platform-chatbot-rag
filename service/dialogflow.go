@@ -45,12 +45,13 @@ func (s *Service) handleMessageDialogflow(chatID, message, history string) (stri
 	// Generate response using OpenAI with context
 	//prompt := fmt.Sprintf("Context:\n%s\nUser query: %s", context, message)
 	prompt := fmt.Sprintf("Conversation history:\n%s\n\nContext:\n%s\nUser query: %s", history, context, message)
-	finalResponse, err := s.openaiClient.GetResponse(prompt)
+	/*finalResponse, err := s.openaiClient.GetResponse(prompt)
 	if err != nil {
 		return "", "", nil, nil, fmt.Errorf("error generating OpenAI response: %v", err)
-	}
+	}*/
 
-	return finalResponse, intent, topChunkIDs, topChunkScores, nil
+	//return finalResponse, intent, topChunkIDs, topChunkScores, nil
+	return prompt, intent, topChunkIDs, topChunkScores, nil
 }
 
 // fetchDialogflowResponse sends the message to Dialogflow and retrieves the response with detected intent.
@@ -109,9 +110,9 @@ func (s *Service) fetchDocumentContext(intent, userMessage string) (string, []st
 func mapTags(intent string) []string {
 	switch intent {
 	case "FAQ Intent":
-		return []string{"FAQs", "Product Information", "User Guide & How-To"}
+		return []string{"FAQs", "Product Information", "User Guide & How-To", "Shipping & Returns"}
 	case "Product Inquiry Intent":
-		return []string{"Product Information", "Account & Billing", "Order Status & Tracking"}
+		return []string{"Product Information", "Account & Billing", "Order Status & Tracking", "Shipping & Returns"}
 	case "Troubleshooting Intent":
 		return []string{"Technical Troubleshooting", "Installation & Setup", "Security & Privacy"}
 	case "Installation Intent":
@@ -142,7 +143,7 @@ func (s *Service) retrieveChunksByTags(tags []string, userMessage string) (strin
 		docIDToText[chunk.ChunkID] = chunk.DocText
 	}
 	// Apply scoring using RetrieveTopNChunks
-	topChunks, err := document.RetrieveTopNChunks(userMessage, documentEmbeddings, s.openaiClient, s.embConfig.NumTopChunks, docIDToText, s.embConfig.ScoreThreshold)
+	topChunks, err := document.RetrieveTopNChunks(userMessage, documentEmbeddings, s.aiClients.OpenAI, s.embConfig.NumTopChunks, docIDToText, s.embConfig.ScoreThreshold)
 	if err != nil || len(topChunks) == 0 {
 		fmt.Println("No relevant chunks found for the given tags.")
 		return "", nil, nil, nil
@@ -181,7 +182,7 @@ func (s *Service) fallbackContext(userMessage string) (string, []string, []float
 	// if err != nil || len(topChunks) == 0 {
 	// 	return "", fmt.Errorf("no relevant chunks found: %v", err)
 	// }
-	topChunks, err := document.RetrieveTopNChunks(userMessage, documentEmbeddings, s.openaiClient, s.embConfig.NumTopChunks, chunkText, s.embConfig.ScoreThreshold)
+	topChunks, err := document.RetrieveTopNChunks(userMessage, documentEmbeddings, s.aiClients.OpenAI, s.embConfig.NumTopChunks, chunkText, s.embConfig.ScoreThreshold)
 	if err != nil || len(topChunks) == 0 {
 		fmt.Printf("No relevant chunks found for message: %s\n", userMessage)
 		return "", nil, nil, nil

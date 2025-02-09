@@ -17,6 +17,23 @@ type Config struct {
 	EmbeddingConfig
 	OpenAIConfig
 	RedisConfig
+	HuggingFaceConfig
+	MistralConfig
+	TogetherAIConfig
+	// DBString            string
+	// AppPort             string
+	// TelegramBotToken    string
+	// LineChannelSecret   string
+	// LineChannelToken    string
+	// ServerConfig        ServerConfig
+	// TelegramAPIURL      string
+	// TelegramWebhookURL  string
+	// DialogflowProjectID string
+	// FacebookAPIURL      string
+	// FacebookPageToken   string
+	// FacebookVerifyToken string
+	//DBUser string
+	//DBPwd  string
 }
 
 type ServerConfig struct {
@@ -43,6 +60,9 @@ type BotConfig struct {
 	InstagramPageToken        string
 	Screaming                 bool
 	UseOpenAI                 bool
+	UseMistral                bool
+	UseMETA                   bool
+	UseDialogflow             bool
 }
 
 type OpenAIConfig struct {
@@ -69,20 +89,35 @@ type EmbeddingConfig struct {
 	TagEmbeddings  map[string][]float64
 }
 
+type HuggingFaceConfig struct {
+	HuggingFaceAPIKey string
+	HuggingFaceModel  string
+}
+
+type MistralConfig struct {
+	MistralAPIKey string
+	MistralModel  string
+}
+
+type TogetherAIConfig struct {
+	TogetherAIAPIKey string
+	TogetherAIModel  string
+}
+
 // Singleton instance of Config
 var instance *Config
 var once sync.Once
 
-func init() {
+/*func init() {
 	err := loadConfig()
 	if err != nil {
 		panic(fmt.Sprintf("Failed to load config: %v", err))
 	}
-}
+}*/
 
-func NewConfig() *Config {
+/*func NewConfig() *Config {
 	return &Config{}
-}
+}*/
 
 // Returns the singleton instance of Config
 func GetConfig() *Config {
@@ -96,13 +131,13 @@ func GetConfig() *Config {
 	return instance
 }
 
-// / Load the configuration into the singleton instance
+// Load the configuration into the singleton instance
 func loadConfig() error {
 	// Load the .env file only if the DATABASE_URL is not already set
 	if !isEnvSet("DATABASE_URL") {
 		err := godotenv.Load("configs/.env")
 		if err != nil {
-			return fmt.Errorf("error loading .env file: %w", err)
+			fmt.Printf("Warning: .env file not found: %v. Continuing without it...\n", err)
 		}
 	}
 
@@ -137,7 +172,10 @@ func loadConfig() error {
 			InstagramVerifyToken:      os.Getenv("IG_VERIFY_TOKEN"),
 			InstagramPageToken:        os.Getenv("IG_PAGE_TOKEN"),
 			Screaming:                 false,
-			UseOpenAI:                 false,
+			UseOpenAI:                 true,
+			UseMistral:                false,
+			UseMETA:                   false,
+			UseDialogflow:             true,
 		},
 		OpenAIConfig: OpenAIConfig{
 			OpenaiAPIKey:   os.Getenv("OPENAI_API_KEY"),
@@ -159,6 +197,18 @@ func loadConfig() error {
 		RedisConfig: RedisConfig{
 			RedisEndpoint: os.Getenv("REDIS_ENDPOINT"),
 			RedisPassword: os.Getenv("REDIS_PASSWORD"),
+		},
+		HuggingFaceConfig: HuggingFaceConfig{
+			HuggingFaceAPIKey: os.Getenv("HUGGINGFACE_API_KEY"),
+			HuggingFaceModel:  os.Getenv("HUGGINGFACE_MODEL"),
+		},
+		MistralConfig: MistralConfig{
+			MistralAPIKey: os.Getenv("MISTRAL_API_KEY"),
+			MistralModel:  os.Getenv("MISTRAL_MODEL"),
+		},
+		TogetherAIConfig: TogetherAIConfig{
+			TogetherAIAPIKey: os.Getenv("TOGETHERAI_API_KEY"),
+			TogetherAIModel:  os.Getenv("TOGETHERAI_MODEL"),
 		},
 	}
 

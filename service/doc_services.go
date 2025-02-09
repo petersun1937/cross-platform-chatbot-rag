@@ -101,7 +101,7 @@ func (s *Service) ProcessDocument(filename, sessionID, filePath string) ([]model
 		}
 		documents = append(documents, document)
 		// Auto-tagging using OpenAI
-		tags, err := s.openaiClient.AutoTagWithOpenAI(chunk)
+		tags, err := s.aiClients.OpenAI.AutoTagWithOpenAI(chunk)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error auto-tagging document: %w", err)
 		}
@@ -113,7 +113,7 @@ func (s *Service) ProcessDocument(filename, sessionID, filePath string) ([]model
 }
 
 func (s *Service) StoreDocumentChunks(filename, docID, chunkText string, chunkID int) (models.Document, error) {
-	embedding, err := s.openaiClient.EmbedText(chunkText)
+	embedding, err := s.aiClients.OpenAI.EmbedText(chunkText)
 	if err != nil {
 		return models.Document{}, fmt.Errorf("error embedding chunk: %v", err)
 	}

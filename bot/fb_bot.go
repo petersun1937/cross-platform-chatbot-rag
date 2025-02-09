@@ -2,9 +2,9 @@ package bot
 
 import (
 	"bytes"
+	"crossplatform_chatbot/ai_clients"
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 	"encoding/json"
 	"errors"
@@ -22,7 +22,7 @@ type fbBot struct {
 }
 
 // creates a new FbBot instance
-func NewFBBot(conf *config.BotConfig, database database.Database, embconf config.EmbeddingConfig, dao repository.DAO) (*fbBot, error) {
+func NewFBBot(conf *config.BotConfig, embconf config.EmbeddingConfig, aiClients ai_clients.AIClients, database database.Database, dao repository.DAO) (*fbBot, error) {
 	// Verify that the page access token is available
 	if conf.FacebookPageToken == "" {
 		return nil, errors.New("facebook Page Access Token is not provided")
@@ -30,12 +30,14 @@ func NewFBBot(conf *config.BotConfig, database database.Database, embconf config
 
 	return &fbBot{
 		BaseBot: BaseBot{
-			platform:     FACEBOOK,
-			conf:         conf,
-			database:     database,
-			dao:          dao,
-			openAIclient: openai.NewClient(),
-			embConfig:    embconf,
+			platform:  FACEBOOK,
+			conf:      conf,
+			database:  database,
+			dao:       dao,
+			aiClients: aiClients,
+			//openAIclient:  openaiClient,
+			//mistralClient: mistralClient,
+			embConfig: embconf,
 		},
 	}, nil
 }

@@ -8,9 +8,9 @@ import (
 	"log"
 	"net/http"
 
+	"crossplatform_chatbot/ai_clients"
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 )
 
@@ -23,7 +23,7 @@ type igBot struct {
 }
 
 // creates a new IGBot instance
-func NewIGBot(conf *config.BotConfig, database database.Database, embconf config.EmbeddingConfig, dao repository.DAO) (*igBot, error) {
+func NewIGBot(conf *config.BotConfig, embconf config.EmbeddingConfig, aiClients ai_clients.AIClients, database database.Database, dao repository.DAO) (*igBot, error) {
 	// Verify that the page access token is available
 	if conf.InstagramPageToken == "" {
 		return nil, errors.New(" Instagram Page Access Token is not provided")
@@ -31,12 +31,12 @@ func NewIGBot(conf *config.BotConfig, database database.Database, embconf config
 
 	return &igBot{
 		BaseBot: BaseBot{
-			platform:     INSTAGRAM,
-			conf:         conf,
-			database:     database,
-			dao:          dao,
-			openAIclient: openai.NewClient(),
-			embConfig:    embconf,
+			platform:  INSTAGRAM,
+			conf:      conf,
+			database:  database,
+			dao:       dao,
+			aiClients: aiClients,
+			embConfig: embconf,
 		},
 	}, nil
 }

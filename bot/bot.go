@@ -1,16 +1,19 @@
 package bot
 
 import (
+	"crossplatform_chatbot/ai_clients"
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 )
 
 // action, public function
 type Bot interface {
 	Run() error
+
+	//sendMenu(identifier interface{}) error
 	SendReply(identifier interface{}, message string) error
+	//handleDialogflowResponse(response *dialogflowpb.DetectIntentResponse, identifier interface{}) error
 	Base() *BaseBot // Make BaseBot accessible
 	Platform() Platform
 }
@@ -18,11 +21,13 @@ type Bot interface {
 type BaseBot struct {
 	platform Platform
 	// Service  *service.Service
-	conf         *config.BotConfig
-	database     database.Database
-	dao          repository.DAO
-	openAIclient *openai.Client
-	embConfig    config.EmbeddingConfig
+	conf      *config.BotConfig
+	database  database.Database
+	dao       repository.DAO
+	aiClients ai_clients.AIClients
+	//openAIclient  *openai.Client
+	//mistralClient *mistral.Client
+	embConfig config.EmbeddingConfig
 }
 
 func (b *BaseBot) Base() *BaseBot {

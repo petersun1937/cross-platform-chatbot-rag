@@ -1,9 +1,9 @@
 package bot
 
 import (
+	"crossplatform_chatbot/ai_clients"
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
-	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 	"fmt"
 	"net/http"
@@ -22,16 +22,16 @@ type generalBot struct {
 }
 
 // creates a new GeneralBot instance
-func NewGeneralBot(botconf *config.BotConfig, embconf config.EmbeddingConfig, database database.Database, dao repository.DAO) (*generalBot, error) {
+func NewGeneralBot(botconf *config.BotConfig, embconf config.EmbeddingConfig, aiClients ai_clients.AIClients, database database.Database, dao repository.DAO) (*generalBot, error) {
 
 	return &generalBot{
 		BaseBot: BaseBot{
-			platform:     GENERAL,
-			conf:         botconf,
-			database:     database,
-			dao:          dao,
-			openAIclient: openai.NewClient(),
-			embConfig:    embconf,
+			platform:  GENERAL,
+			conf:      botconf,
+			database:  database,
+			dao:       dao,
+			aiClients: aiClients,
+			embConfig: embconf,
 		},
 	}, nil
 }

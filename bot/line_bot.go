@@ -1,10 +1,10 @@
 package bot
 
 import (
+	"crossplatform_chatbot/ai_clients"
 	config "crossplatform_chatbot/configs"
 	"crossplatform_chatbot/database"
 	"crossplatform_chatbot/models"
-	openai "crossplatform_chatbot/openai"
 	"crossplatform_chatbot/repository"
 	"errors"
 	"fmt"
@@ -28,7 +28,7 @@ type lineBot struct {
 	lineClient *linebot.Client
 }
 
-func NewLineBot(conf *config.BotConfig, database database.Database, embconf config.EmbeddingConfig, dao repository.DAO) (*lineBot, error) {
+func NewLineBot(conf *config.BotConfig, embconf config.EmbeddingConfig, aiClients ai_clients.AIClients, database database.Database, dao repository.DAO) (*lineBot, error) {
 	lineClient, err := linebot.New(conf.LineChannelSecret, conf.LineChannelToken)
 	if err != nil {
 		return nil, err
@@ -36,12 +36,12 @@ func NewLineBot(conf *config.BotConfig, database database.Database, embconf conf
 
 	return &lineBot{
 		BaseBot: BaseBot{
-			platform:     LINE,
-			conf:         conf,
-			database:     database,
-			dao:          dao,
-			openAIclient: openai.NewClient(),
-			embConfig:    embconf,
+			platform:  LINE,
+			conf:      conf,
+			database:  database,
+			dao:       dao,
+			aiClients: aiClients,
+			embConfig: embconf,
 		},
 		lineClient: lineClient,
 	}, nil
